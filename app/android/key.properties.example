@@ -1,0 +1,8 @@
+## 复制为 app/android/key.properties 并填入真实值；key.jks 放在 app/android/app/ 下
+## 生成签名 keystore（一次即可，请牢记口令并安全备份）:
+##   keytool -genkey -v -keystore app/android/app/key.jks \
+##     -keyalg RSA -keysize 2048 -validity 10000 -alias beauty
+storePassword=你的store口令
+keyPassword=你的key口令
+keyAlias=beauty
+storeFile=key.jks

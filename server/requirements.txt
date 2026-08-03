@@ -1,0 +1,37 @@
+# ---- API / 服务 ----
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+python-multipart==0.0.*
+pydantic==2.*
+pydantic-settings==2.*
+
+# ---- 队列 ----
+celery[redis]==5.4.*
+redis==5.*
+
+# ---- 存储 ----
+boto3==1.35.*
+
+# ---- 图像 ----
+pillow==11.*
+numpy==1.26.*          # mediapipe 当前约束 numpy<2
+opencv-python-headless==4.10.*
+
+# ---- 人脸/人体分析（Apache 2.0，可商用） ----
+mediapipe==0.10.*
+
+# ---- 轻量推理 ----
+onnxruntime-gpu==1.20.*   # 无 GPU 机器部署时改用 onnxruntime==1.20.*（见部署手册 §2.3）
+
+# ---- SD 推理（sd 模式需要；GPU 机器部署） ----
+# torch 需按 CUDA 版本安装，例如在 Dockerfile 中:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch>=2.2
+diffusers==0.32.*
+transformers==4.46.*
+accelerate==1.1.*
+safetensors==0.4.*
+peft==0.14.*
+
+# ---- HTTP（内部调用/健康检查） ----
+httpx==0.27.*
