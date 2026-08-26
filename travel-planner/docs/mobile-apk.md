@@ -1,20 +1,20 @@
 # Android APK 打包与高德 Key 说明
 
-## 已生成：原生高德地图 APK v1.0.4
+## 已生成：原生高德地图 APK v1.0.5
 
 下载文件：
 
 ```text
-travel-planner/release/xingji-smart-travel-amap-v1.0.4-debug.apk
+travel-planner/release/xingji-smart-travel-amap-v1.0.5-debug.apk
 ```
 
 - 应用名：**行迹智能旅行**
 - 包名：`com.xingji.travel`
 - 最低 Android：5.0 / API 21
-- SHA-256：`c7edd46313af24b24b2223991841af1f3e4b04b30f9629f624d46e023f38abff`
+- SHA-256：`76b6ab5c86e2778859484dc14a764f67f5f910cec72a9b9c0a3a2eb2079940a8`
 - 已验证：ZIP 对齐和 v1 / v2 / v3 debug 签名。
 
-## v1.0.4 交互规格
+## v1.0.5 交互规格
 
 | 用户需求 | 实现 |
 |---|---|
@@ -23,7 +23,7 @@ travel-planner/release/xingji-smart-travel-amap-v1.0.4-debug.apk
 | 任意天数 | 支持 1–30 天；日数改变后动态生成 Day Tab，每天依据每日时长分配 3–5 个景点。 |
 | 交通方式影响路线 | 步行、骑行、自驾、公交会使用不同道路系数、速度、候选排序和等待时间，重算景点顺序、路线距离、交通时长；高德地图的线宽/虚线样式也会同步区分。 |
 
-路线面板通过 `XingjiNativeMap` JavaScript bridge 将当前日路线、交通方式、Marker 坐标与日期颜色发送给原生 Android 层。原生层在应用内绘制高德 Marker 和 Polyline，不会跳转外部高德 App。
+路线面板通过 `XingjiNativeMap` JavaScript bridge 将当前日路线、交通方式、Marker 坐标与日期颜色发送给原生 Android 层。原生层在应用内绘制高德 Marker 和 Polyline，不会跳转外部高德 App。每个 Marker 会渲染与上方经典路线一致的圆形编号：路线第 1 站对应地图编号 1，依此类推。
 
 ## 高德 Key 绑定
 

@@ -1,7 +1,11 @@
 package com.xingji.travel;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
@@ -16,6 +20,7 @@ import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.MapsInitializer;
+import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.MarkerOptions;
@@ -151,10 +156,16 @@ public final class MainActivity extends Activity {
                     hasPoint = true;
                     String name = spot.optString("name", "景点");
                     String arrival = spot.optString("arrivalTime", "");
+                    int day = route.optInt("day", 1);
+                    // The visible number is intentionally the same index as the
+                    // corresponding route card above the map: no guesswork between
+                    // the classic route list and the AMap marker order.
                     amap.addMarker(new MarkerOptions()
                         .position(point)
-                        .title((spotIndex + 1) + ". " + name)
-                        .snippet(arrival.isEmpty() ? route.optString("title", "智能路线") : "到达 " + arrival)
+                        .icon(numberedMarker(spotIndex + 1, color))
+                        .anchor(0.5f, 0.5f)
+                        .title("Day " + day + " · " + (spotIndex + 1) + ". " + name)
+                        .snippet(arrival.isEmpty() ? route.optString("title", "智能路线") : "第 " + (spotIndex + 1) + " 站 · " + arrival + " 到达")
                         .zIndex(10f + spotIndex));
                 }
                 if (points.size() > 1) {
@@ -176,6 +187,26 @@ public final class MainActivity extends Activity {
         } catch (Exception ignored) {
             // Invalid bridge data should never break the native map or the route list.
         }
+    }
+
+    /** Draw a numbered, route-coloured marker so map order stays visibly aligned with cards. */
+    private com.amap.api.maps.model.BitmapDescriptor numberedMarker(int order, int color) {
+        int size = Math.max(28, (int) dp(34));
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(Color.WHITE);
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint);
+        paint.setColor(color);
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f - Math.max(2, dp(2)), paint);
+        paint.setColor(Color.WHITE);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        paint.setTextSize(Math.max(11, dp(order > 9 ? 11 : 13)));
+        Paint.FontMetrics metrics = paint.getFontMetrics();
+        float baseline = size / 2f - (metrics.ascent + metrics.descent) / 2f;
+        canvas.drawText(String.valueOf(order), size / 2f, baseline, paint);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     private float dp(int value) {
