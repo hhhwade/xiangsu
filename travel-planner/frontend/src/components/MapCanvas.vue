@@ -317,6 +317,45 @@ function selectFallbackSpot(spot: RouteSpot) {
   showDetails.value = true
 }
 
+interface EmbeddedAmapBridge {
+  updateRoute: (payload: string) => void
+  focusSpot: (latitude: number, longitude: number) => void
+}
+
+function embeddedAmapBridge(): EmbeddedAmapBridge | undefined {
+  const candidate = (window as Window & { XingjiNativeMap?: EmbeddedAmapBridge }).XingjiNativeMap
+  return candidate && typeof candidate.updateRoute === 'function' ? candidate : undefined
+}
+
+/** Send exactly the data needed by the native Android MapView; no API key crosses this bridge. */
+function publishEmbeddedAmapRoute() {
+  const bridge = embeddedAmapBridge()
+  if (!bridge) return
+  const routes = visibleRoutes.value.map((route) => ({
+    day: route.day,
+    title: route.title,
+    color: route.color,
+    spots: route.spots.map((spot) => ({
+      name: spot.name,
+      arrivalTime: spot.arrivalTime,
+      location: { lng: spot.location.lng, lat: spot.location.lat },
+    })),
+  }))
+  try {
+    bridge.updateRoute(JSON.stringify({ routes }))
+  } catch {
+    // The browser version does not expose this Android-only bridge.
+  }
+}
+
+function focusEmbeddedAmapSpot(spot: RouteSpot) {
+  try {
+    embeddedAmapBridge()?.focusSpot(spot.location.lat, spot.location.lng)
+  } catch {
+    // Native map focus is optional; the web selection remains fully usable.
+  }
+}
+
 /**
  * AMap URI API opens the real AMap client when installed and falls back to its
  * web map otherwise. This is intentionally keyless: Android/JS SDK credentials
@@ -337,18 +376,28 @@ function openInAmap() {
 
 watch([visibleRoutes, () => props.selectedSpot?.id], () => {
   if (amapReady.value) drawAmap()
-  if (props.selectedSpot) void focusNativeSpot(props.selectedSpot)
+  publishEmbeddedAmapRoute()
+  if (props.selectedSpot) {
+    void focusNativeSpot(props.selectedSpot)
+    focusEmbeddedAmapSpot(props.selectedSpot)
+  }
 }, { deep: true })
 
 watch(showAllDays, () => {
   if (amapReady.value) drawAmap()
+  publishEmbeddedAmapRoute()
 })
 
 watch(() => props.transportMode, (mode) => {
   if (nativeAmapReady.value && nativeMap) void nativeMap.setTrafficEnabled(mode === 'driving')
 })
 
-onMounted(initialiseMap)
+onMounted(async () => {
+  await initialiseMap()
+  // The Android WebView bridge is attached before the local page finishes loading.
+  // Deferring one frame lets the initial sample route be rendered on the native map.
+  window.requestAnimationFrame(publishEmbeddedAmapRoute)
+})
 onBeforeUnmount(() => {
   map?.destroy?.()
   nativeMap?.destroy?.()

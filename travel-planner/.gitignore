@@ -16,3 +16,5 @@ backend/.env
 release/*.apk
 release/*.aab
 release/*.sha256
+
+release/.native-amap-build/
