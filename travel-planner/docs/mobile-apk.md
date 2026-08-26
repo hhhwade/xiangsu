@@ -1,20 +1,20 @@
 # Android APK 打包与高德 Key 说明
 
-## 已生成：原生高德地图 APK v1.0.5
+## 已生成：原生高德地图 APK v1.0.6
 
 下载文件：
 
 ```text
-travel-planner/release/xingji-smart-travel-amap-v1.0.5-debug.apk
+travel-planner/release/xingji-smart-travel-amap-v1.0.6-debug.apk
 ```
 
 - 应用名：**行迹智能旅行**
 - 包名：`com.xingji.travel`
 - 最低 Android：5.0 / API 21
-- SHA-256：`76b6ab5c86e2778859484dc14a764f67f5f910cec72a9b9c0a3a2eb2079940a8`
+- SHA-256：`4b73d7e6b89d2968c13695f3d90a03112de1988dd74a93b7f302144173f8b14c`
 - 已验证：ZIP 对齐和 v1 / v2 / v3 debug 签名。
 
-## v1.0.5 交互规格
+## v1.0.6 交互规格
 
 | 用户需求 | 实现 |
 |---|---|

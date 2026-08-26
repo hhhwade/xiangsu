@@ -67,6 +67,9 @@ public final class MainActivity extends Activity {
         amap.getUiSettings().setCompassEnabled(false);
 
         root.addView(webView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.56f));
+        View divider = new View(this);
+        divider.setBackgroundColor(Color.rgb(218, 227, 218));
+        root.addView(divider, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) dp(3)));
         FrameLayout mapFrame = new FrameLayout(this);
         mapFrame.addView(mapView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         root.addView(mapFrame, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.44f));

@@ -59,7 +59,7 @@ cat > "$OUT_DIR/apk/res/values/styles.xml" <<'EOF'
 EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10005" android:versionName="1.0.5">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10006" android:versionName="1.0.6">
  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
