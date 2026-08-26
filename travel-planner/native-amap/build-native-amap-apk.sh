@@ -5,6 +5,7 @@ set -euo pipefail
 
 : "${AMAP_ANDROID_KEY:?Set the Android-platform AMap key in the environment}"
 : "${AMAP_SDK_JAR:?Path to AMap3DMap Android SDK JAR}"
+: "${AMAP_SEARCH_JAR:?Path to AMap Search Android SDK JAR}"
 : "${AMAP_ARM64_SO:?Path to arm64-v8a libAMapSDK_MAP*.so}"
 : "${AMAP_ARMV7_SO:?Path to armeabi-v7a libAMapSDK_MAP*.so}"
 : "${ANDROID_JAR:?Path to Android platform android.jar}"
@@ -41,11 +42,11 @@ mkdir -p "$OUT_DIR/classes" "$OUT_DIR/apk/res/values" "$OUT_DIR/apk/assets/www" 
 
 "$JAVAC_BIN" -encoding UTF-8 -source 8 -target 8 \
   -bootclasspath "$ANDROID_JAR" \
-  -classpath "$AMAP_SDK_JAR" \
+  -classpath "$AMAP_SDK_JAR:$AMAP_SEARCH_JAR" \
   -d "$OUT_DIR/classes" "$SCRIPT_DIR/MainActivity.java"
 
 "$JAVA_BIN" -cp "$DX_JAR" com.android.dx.command.Main \
-  --dex --output="$OUT_DIR/apk/classes.dex" "$OUT_DIR/classes" "$AMAP_SDK_JAR"
+  --dex --output="$OUT_DIR/apk/classes.dex" "$OUT_DIR/classes" "$AMAP_SDK_JAR" "$AMAP_SEARCH_JAR"
 
 cp -R "$FRONTEND_DIR/android/app/src/main/res"/mipmap-* "$OUT_DIR/apk/res/" 2>/dev/null || true
 cat > "$OUT_DIR/apk/res/values/strings.xml" <<'EOF'
@@ -59,7 +60,7 @@ cat > "$OUT_DIR/apk/res/values/styles.xml" <<'EOF'
 EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10009" android:versionName="1.0.9">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10100" android:versionName="1.1.0">
  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

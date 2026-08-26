@@ -28,6 +28,10 @@ import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.PolylineOptions;
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.poisearch.PoiResult;
+import com.amap.api.services.poisearch.PoiSearch;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -150,6 +154,83 @@ public final class MainActivity extends Activity {
                     }
                 }
             });
+        }
+
+        /** Request real AMap POIs for the entered national city without exposing a Web Service key. */
+        @JavascriptInterface
+        public void searchPois(final String city, final String keywords) {
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    requestAmapPois(city, keywords);
+                }
+            });
+        }
+    }
+
+    private void requestAmapPois(final String city, String keywords) {
+        if (city == null || city.trim().isEmpty()) return;
+        try {
+            String queryText = keywords == null || keywords.trim().isEmpty() ? "旅游景点" : keywords;
+            PoiSearch.Query query = new PoiSearch.Query(queryText, "", city.trim());
+            query.setCityLimit(true);
+            query.setPageSize(30);
+            PoiSearch search = new PoiSearch(this, query);
+            search.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
+                @Override
+                public void onPoiSearched(PoiResult result, int code) {
+                    JSONArray pois = new JSONArray();
+                    if (code == 1000 && result != null && result.getPois() != null) {
+                        for (PoiItem item : result.getPois()) {
+                            if (item == null || item.getLatLonPoint() == null) continue;
+                            LatLonPoint point = item.getLatLonPoint();
+                            try {
+                                JSONObject poi = new JSONObject();
+                                poi.put("id", item.getPoiId());
+                                poi.put("name", item.getTitle());
+                                poi.put("type", emptyTo(item.getTypeDes(), "高德推荐景点"));
+                                poi.put("lng", point.getLongitude());
+                                poi.put("lat", point.getLatitude());
+                                poi.put("description", emptyTo(item.getSnippet(), item.getTitle() + "位于" + city + "，由高德 POI 搜索实时返回。"));
+                                pois.put(poi);
+                            } catch (Exception ignored) {
+                                // Skip malformed POI records but return remaining accurate points.
+                            }
+                        }
+                    }
+                    dispatchNativePois(city, pois, code);
+                }
+
+                @Override
+                public void onPoiItemSearched(PoiItem item, int code) {
+                    // Route planning consumes list search results only.
+                }
+            });
+            search.searchPOIAsyn();
+        } catch (Exception error) {
+            dispatchNativePois(city, new JSONArray(), -1);
+        }
+    }
+
+    private String emptyTo(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    private void dispatchNativePois(String city, JSONArray pois, int code) {
+        try {
+            JSONObject payload = new JSONObject();
+            payload.put("city", city);
+            payload.put("code", code);
+            payload.put("pois", pois);
+            final String escaped = JSONObject.quote(payload.toString());
+            if (webView != null) {
+                webView.post(new Runnable() {
+                    @Override public void run() {
+                        webView.evaluateJavascript("window.XingjiNativePoiResult && window.XingjiNativePoiResult(" + escaped + ");", null);
+                    }
+                });
+            }
+        } catch (Exception ignored) {
+            // Offline city route fallback stays available.
         }
     }
 

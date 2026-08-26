@@ -7,6 +7,7 @@
 - `web/index.html`：为 `file:///android_asset` 设计的无模块路线面板，保证路线区域在 Android WebView 内不会空白；
 - `web/route-panel.js`：全国城市中心缓存、1–30 天动态行程、偏好与交通方式重算；
 - `XingjiNativeMap` JavaScript bridge：前端生成/切换/拖拽路线后，向原生地图发送景点坐标、日期颜色、交通方式和顺序；
+- 原生层通过 AMap Search SDK 查询当前城市真实 POI，将高德坐标和地址摘要回传路线面板；
 - 原生层绘制 Marker、按日期配色的 Polyline，并自动缩放到全部景点范围。
 
 ## 安全约束
@@ -34,6 +35,7 @@ export AMAP_ANDROID_KEY='你的 Android 平台 Key'
 ```bash
 export AMAP_ANDROID_KEY='Android 平台 Key'
 export AMAP_SDK_JAR=/secure/sdk/AMap3DMap.jar
+export AMAP_SEARCH_JAR=/secure/sdk/AMapSearch.jar
 export AMAP_ARM64_SO=/secure/sdk/arm64-v8a/libAMapSDK_MAP.so
 export AMAP_ARMV7_SO=/secure/sdk/armeabi-v7a/libAMapSDK_MAP.so
 export ANDROID_JAR=/secure/android-sdk/platforms/android-34/android.jar
