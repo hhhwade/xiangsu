@@ -278,7 +278,7 @@
   function requestNativePois(city) {
     try {
       if(window.XingjiNativeMap && window.XingjiNativeMap.searchPois) {
-        window.XingjiNativeMap.searchPois(city, selectedPrefs[0] || '旅游景点');
+        window.XingjiNativeMap.searchPois(city, '旅游景点|博物馆|美食');
       }
     } catch(e) {}
   }

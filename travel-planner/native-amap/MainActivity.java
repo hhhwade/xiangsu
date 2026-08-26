@@ -38,7 +38,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Native Android AMap host for the portrait stacked travel planner.
@@ -53,6 +55,7 @@ public final class MainActivity extends Activity {
     private WebView webView;
     private TextView mapRouteCaption;
     private long lastRouteRevision = -1L;
+    private int poiRequestSerial = 0;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -171,53 +174,74 @@ public final class MainActivity extends Activity {
     private void requestAmapPois(final String city, String keywords) {
         if (city == null || city.trim().isEmpty()) return;
         try {
-            String queryText = keywords == null || keywords.trim().isEmpty() ? "旅游景点" : keywords;
-            PoiSearch.Query query = new PoiSearch.Query(queryText, "", city.trim());
-            query.setCityLimit(true);
-            query.setPageSize(30);
-            PoiSearch search = new PoiSearch(this, query);
-            search.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
-                @Override
-                public void onPoiSearched(PoiResult result, int code) {
-                    JSONArray pois = new JSONArray();
-                    if (code == 1000 && result != null && result.getPois() != null) {
-                        for (PoiItem item : result.getPois()) {
-                            if (item == null || item.getLatLonPoint() == null) continue;
-                            LatLonPoint point = item.getLatLonPoint();
-                            try {
-                                JSONObject poi = new JSONObject();
-                                String type = emptyTo(item.getTypeDes(), "高德推荐景点");
-                                String address = emptyTo(item.getSnippet(), "高德 POI 实时返回地点");
-                                String imageUrl = "";
-                                if (item.getPhotos() != null && !item.getPhotos().isEmpty()) {
-                                    Photo firstPhoto = item.getPhotos().get(0);
-                                    if (firstPhoto != null && firstPhoto.getUrl() != null) imageUrl = firstPhoto.getUrl();
-                                }
-                                poi.put("id", item.getPoiId());
-                                poi.put("name", item.getTitle());
-                                poi.put("type", type);
-                                poi.put("lng", point.getLongitude());
-                                poi.put("lat", point.getLatitude());
-                                poi.put("address", address);
-                                poi.put("imageUrl", imageUrl);
-                                poi.put("overview", buildPoiOverview(city, item.getTitle(), type));
-                                pois.put(poi);
-                            } catch (Exception ignored) {
-                                // Skip malformed POI records but return remaining accurate points.
-                            }
+            final int requestId = ++poiRequestSerial;
+            String[] rawTerms = (keywords == null || keywords.trim().isEmpty() ? "旅游景点" : keywords).split("\\|");
+            final ArrayList<String> terms = new ArrayList<>();
+            for (String raw : rawTerms) {
+                if (raw != null && !raw.trim().isEmpty() && !terms.contains(raw.trim())) terms.add(raw.trim());
+            }
+            if (terms.isEmpty()) terms.add("旅游景点");
+
+            final Map<String, JSONObject> merged = new LinkedHashMap<>();
+            final int[] finished = {0};
+            final int total = terms.size();
+            for (String term : terms) {
+                PoiSearch.Query query = new PoiSearch.Query(term, "", city.trim());
+                query.setCityLimit(true);
+                query.setPageSize(20);
+                PoiSearch search = new PoiSearch(this, query);
+                search.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
+                    @Override
+                    public void onPoiSearched(PoiResult result, int code) {
+                        if (requestId != poiRequestSerial) return;
+                        if (code == 1000 && result != null && result.getPois() != null) {
+                            for (PoiItem item : result.getPois()) appendPoi(city, item, merged);
+                        }
+                        finished[0]++;
+                        if (finished[0] >= total) {
+                            JSONArray pois = new JSONArray();
+                            for (JSONObject poi : merged.values()) pois.put(poi);
+                            dispatchNativePois(city, pois, pois.length() > 0 ? 1000 : code);
                         }
                     }
-                    dispatchNativePois(city, pois, code);
-                }
 
-                @Override
-                public void onPoiItemSearched(PoiItem item, int code) {
-                    // Route planning consumes list search results only.
-                }
-            });
-            search.searchPOIAsyn();
+                    @Override
+                    public void onPoiItemSearched(PoiItem item, int code) {
+                        // Route planning consumes list search results only.
+                    }
+                });
+                search.searchPOIAsyn();
+            }
         } catch (Exception error) {
             dispatchNativePois(city, new JSONArray(), -1);
+        }
+    }
+
+    private void appendPoi(String city, PoiItem item, Map<String, JSONObject> merged) {
+        if (item == null || item.getLatLonPoint() == null) return;
+        try {
+            LatLonPoint point = item.getLatLonPoint();
+            String id = emptyTo(item.getPoiId(), item.getTitle() + "@" + point.getLatitude() + "," + point.getLongitude());
+            if (merged.containsKey(id)) return;
+            String type = emptyTo(item.getTypeDes(), "高德推荐景点");
+            String address = emptyTo(item.getSnippet(), "高德 POI 实时返回地点");
+            String imageUrl = "";
+            if (item.getPhotos() != null && !item.getPhotos().isEmpty()) {
+                Photo firstPhoto = item.getPhotos().get(0);
+                if (firstPhoto != null && firstPhoto.getUrl() != null) imageUrl = firstPhoto.getUrl();
+            }
+            JSONObject poi = new JSONObject();
+            poi.put("id", id);
+            poi.put("name", item.getTitle());
+            poi.put("type", type);
+            poi.put("lng", point.getLongitude());
+            poi.put("lat", point.getLatitude());
+            poi.put("address", address);
+            poi.put("imageUrl", imageUrl);
+            poi.put("overview", buildPoiOverview(city, item.getTitle(), type));
+            merged.put(id, poi);
+        } catch (Exception ignored) {
+            // Skip malformed POI records but keep the rest of the live result set.
         }
     }
 
