@@ -185,12 +185,15 @@ public final class MainActivity extends Activity {
                             LatLonPoint point = item.getLatLonPoint();
                             try {
                                 JSONObject poi = new JSONObject();
+                                String type = emptyTo(item.getTypeDes(), "高德推荐景点");
+                                String address = emptyTo(item.getSnippet(), "高德 POI 实时返回地点");
                                 poi.put("id", item.getPoiId());
                                 poi.put("name", item.getTitle());
-                                poi.put("type", emptyTo(item.getTypeDes(), "高德推荐景点"));
+                                poi.put("type", type);
                                 poi.put("lng", point.getLongitude());
                                 poi.put("lat", point.getLatitude());
-                                poi.put("description", emptyTo(item.getSnippet(), item.getTitle() + "位于" + city + "，由高德 POI 搜索实时返回。"));
+                                poi.put("address", address);
+                                poi.put("overview", buildPoiOverview(city, item.getTitle(), type));
                                 pois.put(poi);
                             } catch (Exception ignored) {
                                 // Skip malformed POI records but return remaining accurate points.
@@ -213,6 +216,26 @@ public final class MainActivity extends Activity {
 
     private String emptyTo(String value, String fallback) {
         return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    /** A concise landmark overview, distinct from the address/snippet returned by AMap. */
+    private String buildPoiOverview(String city, String name, String type) {
+        String category = emptyTo(type, "特色景点");
+        String theme;
+        if (category.contains("博物馆") || category.contains("展览")) {
+            theme = "以当地历史、艺术或专题内容为核心的文化参观地点";
+        } else if (category.contains("风景") || category.contains("公园") || category.contains("山") || category.contains("湖")) {
+            theme = "以自然景观、步行观赏和城市休闲体验为主的地点";
+        } else if (category.contains("寺") || category.contains("宗教")) {
+            theme = "兼具宗教文化与建筑观赏价值的静谧人文空间";
+        } else if (category.contains("餐") || category.contains("美食")) {
+            theme = "集中体验当地饮食和市井氛围的风味节点";
+        } else if (category.contains("购物") || category.contains("商场")) {
+            theme = "融合购物、餐饮和休闲功能的城市活力区域";
+        } else {
+            theme = "具有当地城市特色和游览价值的代表性地点";
+        }
+        return name + "是" + city + "的" + category + "，" + theme + "。";
     }
 
     private void dispatchNativePois(String city, JSONArray pois, int code) {

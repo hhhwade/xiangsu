@@ -93,6 +93,60 @@
     ]
   };
 
+  /* Editorial-style landmark summaries for the built-in classic routes. */
+  var landmarkOverviews = {
+    '断桥残雪':'西湖十景之一，因白堤入口与湖面视野开阔而成为西湖北线的经典起点。',
+    '白堤':'横贯西湖北部的古堤，串联断桥、平湖秋月等湖岸景观，适合步行慢游。',
+    '平湖秋月':'西湖北岸临湖赏月胜地，以开阔湖景和传统园林意境见长。',
+    '楼外楼':'西湖边历史悠久的杭帮菜餐厅，是体验本地传统风味的代表节点。',
+    '曲院风荷':'以夏季荷花、曲折水岸和园林步道闻名，是西湖西线的重要景观。',
+    '苏堤春晓':'贯穿西湖南北的长堤，沿途桥景、湖景丰富，适合傍晚收尾慢行。',
+    '灵隐寺':'杭州最具代表性的佛教古刹之一，坐落于飞来峰山麓，禅意浓厚。',
+    '飞来峰':'以石灰岩洞壑和历代石窟造像著称，是灵隐片区的人文核心。',
+    '龙井村':'西湖龙井茶的重要产地，茶园、村落与山路构成典型江南茶乡景观。',
+    '中国茶叶博物馆':'以中国茶文化、制茶工艺和茶史陈列为主题的专业博物馆。',
+    '拱宸桥':'京杭大运河杭州段的地标古桥，见证运河商业与城市发展历史。',
+    '京杭大运河博物馆':'集中展示京杭大运河历史、漕运文化和杭州运河记忆的专题馆。',
+    '天安门广场':'北京中轴线南端的重要公共空间，也是感受首都城市格局的标志性地点。',
+    '故宫博物院':'明清两代皇家宫殿群，以宏大的中轴布局和宫廷文物收藏闻名。',
+    '景山公园':'位于故宫北侧的皇家园林，登高可俯瞰北京中轴线与故宫全景。',
+    '北海公园':'保存皇家园林格局的历史公园，以白塔、琼华岛和湖景著称。',
+    '什刹海':'由前海、后海和西海组成的历史水系，是北京胡同文化集中区域。',
+    '南锣鼓巷':'北京传统胡同街区，汇集小店、院落和城市生活方式。',
+    '外滩':'黄浦江畔的上海城市地标，以万国建筑群和陆家嘴天际线闻名。',
+    '南京路步行街':'上海最具代表性的商业步行街，连接外滩与人民广场。',
+    '豫园':'始建于明代的江南古典园林，以九曲桥、湖心亭和园林建筑著称。',
+    '上海博物馆':'以青铜器、书画、陶瓷等中国古代艺术收藏见长的综合博物馆。',
+    '新天地':'由石库门建筑改造而成的城市休闲街区，融合餐饮、艺术与夜生活。',
+    '武康路':'以近代优秀建筑、梧桐街景和慢生活氛围著称的上海城市街区。',
+    '陈家祠':'岭南传统祠堂建筑代表，以精美木雕、石雕和砖雕装饰闻名。',
+    '永庆坊':'广州西关旧城更新街区，保留骑楼、粤剧和岭南生活气息。',
+    '沙面':'珠江边历史建筑街区，拥有成片欧陆风格近代建筑和绿荫步道。',
+    '广州塔':'广州新城市中轴线地标，提供珠江两岸和城市天际线视野。',
+    '莲花山公园':'深圳中心区大型城市公园，山顶视野开阔，是市民休闲地标。',
+    '市民中心':'深圳中心区公共建筑群，周边集中了城市行政、文化与商业空间。',
+    '深圳博物馆':'展示深圳城市发展、改革开放与岭南文化的综合性博物馆。',
+    '华强北':'以电子产品和数码商业闻名的深圳特色商圈。',
+    '宽窄巷子':'由宽巷子、窄巷子和井巷子组成的成都清代街巷文化区。',
+    '武侯祠':'纪念诸葛亮、刘备等蜀汉人物的历史祠庙，是成都三国文化地标。',
+    '锦里':'紧邻武侯祠的仿古商业街，集中呈现川西民俗和传统小吃。',
+    '杜甫草堂':'唐代诗人杜甫寓居成都时的故居遗址，兼具诗史与园林价值。',
+    '钟楼':'西安明代城中心地标，体现古城传统城市轴线与街道格局。',
+    '回民街':'西安城内著名的回族饮食文化街区，以清真餐饮和市井氛围著称。',
+    '西安城墙':'中国现存规模较完整的古代城垣之一，可从城上感受古城尺度。',
+    '大雁塔':'唐代佛教建筑代表，见证玄奘译经与长安佛教文化。',
+    '解放碑':'重庆核心商圈地标，也是观察山城立体街区和都市生活的中心。',
+    '洪崖洞':'依山而建的吊脚楼风貌街区，以两江夜景和巴渝建筑形态著称。',
+    '鼓浪屿':'厦门近海历史文化岛屿，以近代建筑、钢琴文化和步行街巷闻名。',
+    '中山路步行街':'厦门老城商业主街，骑楼建筑与闽南风味小吃集中。',
+    '中山陵':'南京钟山风景区的重要纪念建筑群，以中轴台阶和山景格局著称。',
+    '夫子庙':'秦淮河畔历史文化街区，围绕孔庙、贡院和传统市井形成。',
+    '拙政园':'苏州古典园林代表，以水景、厅堂和曲折园路构成江南园林意境。',
+    '苏州博物馆':'由贝聿铭设计的新馆与传统园林元素结合，兼具建筑与文物看点。',
+    '翠湖公园':'昆明城内历史悠久的城市公园，以湖景、鸟类和近代文化遗迹闻名。',
+    '亚龙湾':'三亚代表性海湾，以沙滩、海水和度假景观闻名。'
+  };
+
   function $(id) { return document.getElementById(id); }
   function normalizeCity(value) { return (value || '').replace(/[\s]/g,'').replace(/市$/,'').replace(/地区$/,'').replace(/特别行政区$/,''); }
   function hash(value) { var h=2166136261; for(var i=0;i<value.length;i++){h^=value.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);} return h>>>0; }
@@ -103,18 +157,19 @@
   function haversine(a,b) { var r=6371,rad=Math.PI/180,dl=(b.lat-a.lat)*rad,dn=(b.lng-a.lng)*rad;var x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dn/2)*Math.sin(dn/2);return 2*r*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
   function notify(text) { var t=$('toast');t.textContent='✓ '+text;t.className='toast show';clearTimeout(notify.timer);notify.timer=setTimeout(function(){t.className='toast';},2400); }
   function chosenTypes() { return selectedPrefs.length ? selectedPrefs.slice() : ['城市漫游']; }
-  function spotDescription(city, type, name) {
+  function spotOverview(city, type, name) {
+    if(landmarkOverviews[name]) return landmarkOverviews[name];
     var wording = {
-      '自然风光':'适合慢行、拍照和留出观景时间，建议根据天气与光线安排。',
-      '历史人文':'建议结合建筑、街区故事或讲解服务深入游览。',
-      '美食探店':'推荐避开正餐高峰，并为排队和用餐预留弹性时间。',
-      '博物馆':'建议提前确认开放日期、预约规则和当期展览。',
-      '宗教寺庙':'请注意开放时段、着装礼仪和安静参观要求。',
-      '网红打卡':'适合在上午或傍晚光线较柔和时到访。',
-      '购物商圈':'可作为午餐、休息或晚间自由活动的弹性节点。',
-      '户外运动':'请结合体力、天气和步行强度安排游览时长。'
+      '自然风光':'一处以自然景观和慢游体验为主的城市休闲节点，适合安排观景与拍照时间。',
+      '历史人文':'承载当地历史文化记忆的代表性地点，适合结合建筑细节和城市背景游览。',
+      '美食探店':'当地风味与市井生活集中呈现的餐饮节点，可作为行程中的用餐停靠。',
+      '博物馆':'围绕本地历史、艺术或专题收藏展开的文化场馆，适合预留完整参观时段。',
+      '宗教寺庙':'具有宗教文化和建筑观赏价值的静谧空间，适合放慢节奏参观。',
+      '网红打卡':'兼具城市辨识度和拍照氛围的热门地点，适合作为行程中的视觉记忆点。',
+      '购物商圈':'集合购物、餐饮和休闲功能的城市活力区域，适合作为弹性停留节点。',
+      '户外运动':'适合步行、轻运动或接近自然的开放区域，可结合当天体力安排。'
     };
-    return name + '位于' + city + '，' + (wording[type] || '建议结合右侧高德地图查看周边交通与到达方式。');
+    return name + '是' + city + '的' + (type || '特色景点') + '，' + (wording[type] || '适合结合周边街区和高德地图路线进行城市探索。');
   }
   function genericPool(city, center, count) {
     var themes=['城市文化地标','本地风味街区','城市博物馆','公园慢游点','人文打卡点','夜景观景点','购物休闲区','城市步行街'];
@@ -124,7 +179,7 @@
       var lng=center[0]+Math.cos(angle)*radius/Math.max(.45,Math.cos(center[1]*Math.PI/180));
       var lat=center[1]+Math.sin(angle)*radius;
       var type=types[i%types.length], name=city+themes[i%themes.length];
-      result.push({id:'generic-'+i,name:name,type:type,lng:lng,lat:lat,duration:50+(i%4)*15,description:spotDescription(city,type,name),tip:'离线城市扩展路线；联网后会优先替换为高德实时 POI。'});
+      result.push({id:'generic-'+i,name:name,type:type,lng:lng,lat:lat,duration:50+(i%4)*15,overview:spotOverview(city,type,name),tip:'离线城市扩展路线；联网后会优先替换为高德实时 POI。'});
     }
     return result;
   }
@@ -133,12 +188,12 @@
     if(nativePois && nativePois.length) {
       for(i=0;i<nativePois.length;i++) {
         var poi=nativePois[i];
-        pool.push({id:poi.id||('amap-'+i),name:poi.name,type:poi.type||'高德推荐景点',lng:poi.lng,lat:poi.lat,duration:55+(i%4)*15,description:poi.description||spotDescription(city,poi.type||'',poi.name),tip:'高德实时 POI 坐标，建议结合地图查看周边交通。'});
+        pool.push({id:poi.id||('amap-'+i),name:poi.name,type:poi.type||'高德推荐景点',lng:poi.lng,lat:poi.lat,duration:55+(i%4)*15,overview:poi.overview||spotOverview(city,poi.type||'',poi.name),tip:poi.address?('地址：'+poi.address):'高德实时 POI 坐标，建议结合地图查看周边交通。'});
       }
     } else if(source) {
       for(i=0;i<source.length;i++) {
         var item=source[i];
-        pool.push({id:'seed-'+i,name:item[0],type:item[1],lng:item[2],lat:item[3],duration:item[4],description:spotDescription(city,item[1],item[0]),tip:'建议结合右侧高德地图安排到达时间。'});
+        pool.push({id:'seed-'+i,name:item[0],type:item[1],lng:item[2],lat:item[3],duration:item[4],overview:spotOverview(city,item[1],item[0]),tip:'建议结合右侧高德地图安排到达时间。'});
       }
     }
     var required=Math.max(days*spotsPerDay,pool.length);
@@ -219,7 +274,7 @@
     html+='<div class="route-title"><span class="route-bar" style="background:'+r.color+'"></span><div><p>DAY '+('0'+r.day).slice(-2)+' · '+profile.label+'优化</p><h3>'+esc(r.title)+'</h3></div></div>';
     html+='<p class="route-desc">'+esc(r.summary)+'</p><div class="stats"><span><b>'+r.spots.length+'</b> 个地点</span><i></i><span><b>'+r.distance+'</b> 路程</span><i></i><span><b>'+r.visit+'</b> 游玩</span></div>';
     html+='<div class="optimized"><span>✓</span><span>已完成 <b>区域聚类 + 2-opt</b></span><em>'+profile.label+'路线</em></div><ol class="spots">';
-    r.spots.forEach(function(s,i){html+='<li class="spot '+(selectedId===s.id?'selected':'')+'" draggable="true" data-index="'+i+'"><div class="spot-time">'+s.arrive+'<i class="order" style="background:'+r.color+'">'+(i+1)+'</i></div><div class="spot-box"><div class="spot-name"><span>'+esc(s.name)+'</span><span>⌖</span></div><div class="spot-meta"><b>'+esc(s.type)+'</b> · 游览约 '+s.duration+' 分钟 · '+s.leave+' 离开</div><p class="spot-desc">'+esc(s.description||s.tip||'该景点的详细介绍将在高德 POI 返回后更新。')+'</p><p class="spot-tip">'+esc(s.tip||'')+'</p></div>'+(s.next?'<div class="segment"><span>⌁</span>'+esc(s.next)+' · 缓冲 15 分钟</div>':'')+'</li>';});
+    r.spots.forEach(function(s,i){html+='<li class="spot '+(selectedId===s.id?'selected':'')+'" draggable="true" data-index="'+i+'"><div class="spot-time">'+s.arrive+'<i class="order" style="background:'+r.color+'">'+(i+1)+'</i></div><div class="spot-box"><div class="spot-name"><span>'+esc(s.name)+'</span><span>⌖</span></div><div class="spot-meta"><b>'+esc(s.type)+'</b> · 游览约 '+s.duration+' 分钟 · '+s.leave+' 离开</div><p class="spot-desc"><b>景点概述</b>'+esc(s.overview||s.tip||'该景点的概述将在高德 POI 返回后更新。')+'</p><p class="spot-tip">'+esc(s.tip||'')+'</p></div>'+(s.next?'<div class="segment"><span>⌁</span>'+esc(s.next)+' · 缓冲 15 分钟</div>':'')+'</li>';});
     html+='</ol><div class="notice"><b>✦ 今日提醒</b><br>'+esc(r.notice)+'</div>';$('routeCard').innerHTML=html;
     var nodes=document.querySelectorAll('.spot');for(var j=0;j<nodes.length;j++){nodes[j].onclick=(function(index){return function(){focus(r.spots[index]);};})(j);nodes[j].ondragstart=(function(index){return function(){dragIndex=index;};})(j);nodes[j].ondragover=function(e){e.preventDefault();};nodes[j].ondrop=(function(index){return function(e){e.preventDefault();if(dragIndex===null||dragIndex===index)return;var moved=r.spots.splice(dragIndex,1)[0];r.spots.splice(index,0,moved);dragIndex=null;selectedId=moved.id;renderRoute();publish();notify('景点顺序已调整，右侧高德地图已重绘');};})(j);}
   }
