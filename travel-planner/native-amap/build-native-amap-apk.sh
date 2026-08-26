@@ -14,7 +14,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-WEB_DIR="$REPO_ROOT/travel-planner/frontend"
+WEB_DIR="${NATIVE_AMAP_WEB_DIR:-$SCRIPT_DIR/web}"
+FRONTEND_DIR="$REPO_ROOT/travel-planner/frontend"
 OUT_DIR="${NATIVE_AMAP_BUILD_DIR:-$REPO_ROOT/travel-planner/release/.native-amap-build}"
 OUTPUT_APK="${NATIVE_AMAP_OUTPUT:-$REPO_ROOT/travel-planner/release/xingji-smart-travel-amap.apk}"
 JAVA_BIN="${JAVA_HOME:+$JAVA_HOME/bin/}java"
@@ -30,11 +31,9 @@ command -v "$JAVAC_BIN" >/dev/null
 command -v zip >/dev/null
 command -v unzip >/dev/null
 
-# Compile the APK-specific route page first. `apk` mode has relative asset URLs.
-(
-  cd "$WEB_DIR"
-  npm run build:apk
-)
+# The native host intentionally uses a plain ES5/HTML route panel. Unlike a Vite
+# module bundle, it is reliable under file:///android_asset on old and new WebViews.
+test -f "$WEB_DIR/index.html"
 
 rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR/classes" "$OUT_DIR/apk/res/values" "$OUT_DIR/apk/assets/www" \
@@ -48,7 +47,7 @@ mkdir -p "$OUT_DIR/classes" "$OUT_DIR/apk/res/values" "$OUT_DIR/apk/assets/www" 
 "$JAVA_BIN" -cp "$DX_JAR" com.android.dx.command.Main \
   --dex --output="$OUT_DIR/apk/classes.dex" "$OUT_DIR/classes" "$AMAP_SDK_JAR"
 
-cp -R "$WEB_DIR/android/app/src/main/res"/mipmap-* "$OUT_DIR/apk/res/" 2>/dev/null || true
+cp -R "$FRONTEND_DIR/android/app/src/main/res"/mipmap-* "$OUT_DIR/apk/res/" 2>/dev/null || true
 cat > "$OUT_DIR/apk/res/values/strings.xml" <<'EOF'
 <resources><string name="app_name">行迹智能旅行</string></resources>
 EOF
@@ -60,7 +59,7 @@ cat > "$OUT_DIR/apk/res/values/styles.xml" <<'EOF'
 EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10002" android:versionName="1.0.2">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10003" android:versionName="1.0.3">
  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -79,7 +78,7 @@ EOF
 "$AAPT2" link "$OUT_DIR/compiled.zip" --manifest "$OUT_DIR/AndroidManifest.xml" -I "$ANDROID_JAR" -o "$OUT_DIR/resources.apk"
 unzip -qo "$OUT_DIR/resources.apk" -d "$OUT_DIR/apk"
 
-cp -R "$WEB_DIR/dist/." "$OUT_DIR/apk/assets/www/"
+cp -R "$WEB_DIR/." "$OUT_DIR/apk/assets/www/"
 mkdir -p "$OUT_DIR/amap-assets"
 unzip -qo "$AMAP_SDK_JAR" 'assets/*' -d "$OUT_DIR/amap-assets"
 cp -R "$OUT_DIR/amap-assets/assets/." "$OUT_DIR/apk/assets/"

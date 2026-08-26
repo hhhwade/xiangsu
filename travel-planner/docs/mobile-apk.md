@@ -5,13 +5,13 @@
 本次已完成并输出原生高德地图版本：
 
 ```text
-travel-planner/release/xingji-smart-travel-amap-v1.0.2-debug.apk
+travel-planner/release/xingji-smart-travel-amap-v1.0.3-debug.apk
 ```
 
 - 应用名：**行迹智能旅行**
 - 包名：`com.xingji.travel`
 - 最低 Android：5.0 / API 21
-- SHA-256：`7b7f514e0675155421311d25834e50ed91c4bc75197c35c2030512f7c6956a8e`
+- SHA-256：`9d199e879999661b99984ecfd235cc4681320a69eb4a38e590a43dfea428e1b2`
 - 已验证：ZIP 对齐与 v1 / v2 / v3 debug 签名
 
 这个版本按产品规格固定为**横屏双栏**：
@@ -62,4 +62,4 @@ travel-planner/native-amap/README.md              # 原生宿主说明
 
 ## 轻量 WebView APK（保留）
 
-`xingji-smart-travel-v1.0.1-debug.apk` 是不含原生地图 SDK 的轻量离线版本，保留用于低体积演示。需要旅游路线右侧直接展示高德地图时，请使用 v1.0.2 原生 AMap APK。
+`xingji-smart-travel-v1.0.1-debug.apk` 是不含原生地图 SDK 的轻量离线版本，保留用于低体积演示。需要旅游路线右侧直接展示高德地图时，请使用 v1.0.3 原生 AMap APK。

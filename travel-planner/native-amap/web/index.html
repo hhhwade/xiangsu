@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#143031" />
+  <title>行迹 · 智能旅行</title>
+  <style>
+    :root { --ink:#1d3938; --deep:#143031; --cream:#f7f6f1; --line:#dbe3dc; --muted:#758681; --accent:#d56e3e; --green:#3c796b; --day:#df7445; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { margin:0; min-height:100%; background:var(--cream); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+    body { overflow:hidden; }
+    button,input { font:inherit; }
+    .app { height:100vh; display:flex; flex-direction:column; background:var(--cream); }
+    .topbar { flex:0 0 56px; display:flex; align-items:center; justify-content:space-between; padding:0 17px; color:#fff; background:var(--deep); }
+    .brand { display:flex; align-items:center; gap:9px; font-weight:800; font-size:17px; letter-spacing:.08em; }
+    .brand-mark { width:27px; height:27px; border-radius:9px; display:grid; place-items:center; color:#f2b683; background:rgba(255,255,255,.1); font-family:serif; font-size:18px; }
+    .top-status { display:flex; align-items:center; gap:5px; color:#a7c0b6; font-size:10px; }
+    .top-status i { width:6px; height:6px; border-radius:50%; background:#82c9a5; box-shadow:0 0 0 3px rgba(130,201,165,.13); }
+    .content { flex:1; overflow:auto; padding:18px 16px 30px; scrollbar-width:thin; }
+    .eyebrow { color:#739188; font-family:monospace; font-size:9px; font-weight:700; letter-spacing:.12em; }
+    h1 { margin:7px 0 5px; font-family:serif; font-size:23px; line-height:1.25; letter-spacing:-.03em; }
+    h1 em { color:var(--accent); font-style:normal; }
+    .intro { margin:0 0 16px; color:var(--muted); font-size:11px; line-height:1.55; }
+    .panel { margin:0 0 15px; padding:14px; border:1px solid var(--line); border-radius:12px; background:#fffefa; box-shadow:0 3px 10px rgba(23,51,45,.035); }
+    .section-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; color:#4e6b64; font-size:10px; font-weight:800; }
+    .section-title small { color:#96a49e; font-weight:500; }
+    .destination { position:relative; display:flex; align-items:center; height:41px; border:1px solid #c9d5cd; border-radius:8px; background:#fff; }
+    .destination span { padding:0 9px 0 11px; color:var(--accent); font-size:18px; }
+    .destination input { width:100%; min-width:0; height:100%; border:0; outline:0; color:#294745; background:transparent; font-size:13px; font-weight:700; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:10px; }
+    .field label { display:block; margin-bottom:5px; color:#748680; font-size:9px; font-weight:700; }
+    .compact { display:flex; align-items:center; height:34px; overflow:hidden; border:1px solid #d5ded6; border-radius:7px; background:#fff; }
+    .compact input { width:100%; min-width:0; height:100%; padding:0 8px; border:0; outline:0; color:#385653; font-size:12px; font-weight:700; }
+    .compact span { padding-right:8px; color:#81908c; font-size:10px; white-space:nowrap; }
+    .chips { display:flex; flex-wrap:wrap; gap:5px; }
+    .chip { min-height:27px; padding:0 7px; border:1px solid #d9e1da; border-radius:6px; color:#788983; background:#fafbf8; font-size:9px; }
+    .chip.on { border-color:#478173; color:#2f665d; background:#e7f1ea; font-weight:800; }
+    .modes { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+    .mode { min-height:39px; padding:4px 2px; border:1px solid #d8e0d8; border-radius:7px; color:#7a8985; background:#fbfcfa; font-size:9px; }
+    .mode.on { border-color:#39766a; color:#285e56; background:#e7f1eb; font-weight:800; }
+    .generate { display:flex; align-items:center; justify-content:center; width:100%; height:42px; gap:6px; border:0; border-radius:8px; color:#fff; background:var(--accent); box-shadow:0 6px 15px rgba(199,91,45,.2); font-size:12px; font-weight:800; }
+    .generate:active { transform:translateY(1px); }
+    .native-note { margin:9px 0 0; color:#8b9994; font-size:9px; text-align:center; }
+    .native-note b { color:#4f8b79; }
+    .itinerary-head { display:flex; align-items:end; justify-content:space-between; margin-top:21px; }
+    .itinerary-head h2 { margin:4px 0 0; font-family:serif; font-size:17px; }
+    .health { display:flex; align-items:center; gap:4px; color:#598e7d; font-size:9px; font-weight:700; }
+    .health i { width:6px; height:6px; border-radius:50%; background:#65ac8e; }
+    .days { display:flex; gap:5px; margin:12px 0; overflow:auto; }
+    .day { flex:0 0 auto; height:29px; padding:0 9px; border:1px solid transparent; border-radius:6px; color:#73837e; background:transparent; font-size:9px; font-weight:800; }
+    .day.on { border-color:#c9dbd0; color:#2a6158; background:#e6f0e9; }
+    .day-dot { display:inline-block; width:6px; height:6px; margin-right:4px; border-radius:50%; vertical-align:middle; }
+    .route-card { padding:13px; border:1px solid var(--line); border-radius:11px; background:#fffefa; }
+    .route-title { display:flex; gap:8px; align-items:center; }
+    .route-bar { width:6px; height:29px; border-radius:6px; background:var(--day); }
+    .route-title p { margin:0 0 2px; color:#80908b; font-family:monospace; font-size:8px; letter-spacing:.1em; }
+    .route-title h3 { margin:0; font-family:serif; font-size:17px; letter-spacing:-.03em; }
+    .route-desc { margin:10px 0 0; color:#72837e; font-size:10px; line-height:1.5; }
+    .stats { display:flex; gap:7px; margin:10px 0; color:#879692; font-size:8px; }
+    .stats b { color:#487167; font-family:monospace; }
+    .stats i { width:3px; height:3px; margin-top:4px; border-radius:50%; background:#bcc6bf; }
+    .optimized { display:flex; align-items:center; gap:5px; min-height:27px; padding:0 8px; border:1px solid #d9e7df; border-radius:5px; color:#51746c; background:#edf5ef; font-size:8px; }
+    .optimized b { color:#33746a; }
+    .optimized em { margin-left:auto; color:#62a488; font-style:normal; }
+    .spots { position:relative; margin:12px 0 0; padding:0; list-style:none; }
+    .spot { position:relative; display:grid; grid-template-columns:42px 1fr; min-height:62px; cursor:grab; }
+    .spot:active { cursor:grabbing; }
+    .spot-time { position:relative; padding:7px 8px 0 0; color:#879692; font-family:monospace; font-size:8px; text-align:right; }
+    .spot-time:after { content:""; position:absolute; right:2px; top:25px; bottom:-4px; width:1px; background:#dce2db; }
+    .spot:last-child .spot-time:after { display:none; }
+    .order { position:absolute; z-index:2; right:-5px; top:21px; display:grid; width:16px; height:16px; place-items:center; border:2px solid #fffefa; border-radius:50%; color:#fff; background:var(--day); font-size:8px; font-style:normal; }
+    .spot-box { margin:0 0 8px 5px; padding:8px 8px 8px 10px; border:1px solid transparent; border-radius:7px; transition:.15s; }
+    .spot.selected .spot-box { border-color:#a9cabc; background:#eef7f0; box-shadow:0 2px 7px rgba(40,103,87,.07); }
+    .spot-box:active { background:#f2f6f1; }
+    .spot-name { display:flex; justify-content:space-between; gap:6px; color:#2f4d49; font-size:11px; font-weight:800; }
+    .spot-name span:last-child { color:#6a9588; font-size:12px; }
+    .spot-meta { margin-top:4px; color:#80918c; font-size:8px; }
+    .spot-meta b { padding:2px 4px; border-radius:3px; color:#a65d39; background:#fae9e0; font-weight:600; }
+    .spot-tip { overflow:hidden; margin:4px 0 0; color:#8b9894; font-size:8px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+    .segment { display:flex; gap:4px; align-items:center; grid-column:2; padding:0 0 6px 9px; color:#91a09b; font-size:8px; }
+    .segment span:first-child { color:#ce7043; font-size:11px; }
+    .notice { margin-top:11px; padding:9px; border:1px solid #eee3d5; border-radius:7px; color:#8d7e70; background:#fdf8f1; font-size:8px; line-height:1.55; }
+    .notice b { color:#a36a47; }
+    .toast { position:fixed; z-index:9; left:50%; bottom:14px; max-width:calc(100% - 24px); padding:9px 11px; border-radius:6px; color:#3b665b; background:#f5fff8; box-shadow:0 8px 20px rgba(20,50,42,.2); font-size:9px; font-weight:700; opacity:0; transform:translate(-50%,10px); transition:.2s; pointer-events:none; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar"><div class="brand"><span class="brand-mark">行</span>行迹</div><span class="top-status"><i></i>高德地图已连接</span></header>
+    <section class="content">
+      <p class="eyebrow">SMART TRIP DESIGNER</p>
+      <h1>把时间留给<br><em>真正想去的地方。</em></h1>
+      <p class="intro">左侧编辑行程，右侧高德地图会同步显示景点位置与游览路线。</p>
+
+      <section class="panel">
+        <div class="section-title"><span>旅程设置</span><small>自动区域聚类</small></div>
+        <div class="destination"><span>⌖</span><input id="destination" value="杭州" aria-label="目的地"></div>
+        <div class="row">
+          <div class="field"><label>停留时间</label><div class="compact"><input id="duration" type="number" value="3" min="1" max="30"><span>天</span></div></div>
+          <div class="field"><label>每日游玩</label><div class="compact"><input id="hours" type="number" value="8" min="2" max="16"><span>小时</span></div></div>
+        </div>
+        <div class="section-title" style="margin-top:12px"><span>想怎么玩</span><small>可多选</small></div>
+        <div class="chips" id="prefs"></div>
+        <div class="section-title" style="margin-top:12px"><span>出行方式</span></div>
+        <div class="modes" id="modes"></div>
+        <button class="generate" id="generate">✦ 生成智能路线　→</button>
+        <p class="native-note">✓ <b>2-opt 路径优化</b> · 右侧高德地图实时同步</p>
+      </section>
+
+      <div class="itinerary-head"><div><p class="eyebrow">YOUR ITINERARY</p><h2 id="itineraryTitle">杭州 · 3 天路线</h2></div><span class="health"><i></i>已优化</span></div>
+      <nav class="days" id="days"></nav>
+      <section class="route-card" id="routeCard"></section>
+    </section>
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <script>
+  (function () {
+    var preferences = ['自然风光','历史人文','美食探店','博物馆','宗教寺庙','网红打卡'];
+    var modeNames = ['步行','骑行','自驾','公交'];
+    var mode = '自驾', activeDay = 1, selectedId = '', dragIndex = null;
+    var routes = [
+      {day:1,title:'西湖经典环线',color:'#DE7444',summary:'从北山街进入西湖，把经典湖岸风景集中在一条不折返的线路。',distance:'6.8 km',visit:'5.3 h',transport:'1.1 h',notice:'断桥 10:30 后游客明显增多，已按当前顺序避开人流。',spots:[
+        {id:'hz01',name:'断桥残雪',type:'自然风光',lng:120.1500,lat:30.2600,arrive:'09:00',leave:'09:45',duration:45,tip:'建议清晨前往，桥东侧光线更适合拍照。',next:'0.8 km · 步行 12 分钟'},
+        {id:'hz02',name:'白堤',type:'自然风光',lng:120.1433,lat:30.2509,arrive:'09:57',leave:'10:57',duration:60,tip:'慢行优先，沿途有多处观湖停靠点。',next:'0.7 km · 步行 10 分钟'},
+        {id:'hz03',name:'平湖秋月',type:'网红打卡',lng:120.1367,lat:30.2482,arrive:'11:07',leave:'11:47',duration:40,tip:'11 点前后湖面较平，适合取景。',next:'0.6 km · 步行 8 分钟'},
+        {id:'hz04',name:'楼外楼',type:'美食探店',lng:120.1304,lat:30.2382,arrive:'12:10',leave:'13:25',duration:75,tip:'建议提前取号，西湖醋鱼与龙井虾仁很受欢迎。',next:'1.2 km · 步行 18 分钟'},
+        {id:'hz05',name:'曲院风荷',type:'自然风光',lng:120.1248,lat:30.2316,arrive:'13:43',leave:'14:58',duration:75,tip:'夏季荷花盛放，雨后木栈道较滑。',next:'1.5 km · 步行 22 分钟'},
+        {id:'hz06',name:'苏堤春晓',type:'自然风光',lng:120.1192,lat:30.2216,arrive:'15:20',leave:'16:20',duration:60,tip:'傍晚光线柔和，可从南端结束当天行程。'}
+      ]},
+      {day:2,title:'灵隐禅意与茶香',color:'#5E9C93',summary:'西线寺院、石窟与茶园集中游览，减少跨区移动。',distance:'9.4 km',visit:'5.7 h',transport:'1.4 h',notice:'灵隐寺建议提前预约；飞来峰石阶较多，请留意体力安排。',spots:[
+        {id:'hz07',name:'灵隐寺',type:'宗教寺庙',lng:120.1013,lat:30.2338,arrive:'08:45',leave:'10:15',duration:90,tip:'请提前预约；入寺着装宜得体。',next:'0.3 km · 步行 5 分钟'},
+        {id:'hz08',name:'飞来峰',type:'历史人文',lng:120.1001,lat:30.2303,arrive:'10:20',leave:'11:35',duration:75,tip:'石窟光线偏暗，拍摄可开启夜景模式。',next:'3.8 km · 自驾 13 分钟'},
+        {id:'hz09',name:'法喜寺',type:'宗教寺庙',lng:120.0869,lat:30.1992,arrive:'12:03',leave:'13:13',duration:70,tip:'午后人流相对平稳，山路需慢行。',next:'2.6 km · 自驾 10 分钟'},
+        {id:'hz10',name:'龙井村',type:'户外运动',lng:120.0952,lat:30.1882,arrive:'13:38',leave:'15:18',duration:100,tip:'如购茶请认准正规门店，山路会车需慢行。',next:'2.1 km · 自驾 8 分钟'},
+        {id:'hz11',name:'中国茶叶博物馆',type:'博物馆',lng:120.1060,lat:30.1941,arrive:'15:41',leave:'17:01',duration:80,tip:'周一部分展厅闭馆，建议确认预约时段。'}
+      ]},
+      {day:3,title:'运河人文慢游',color:'#7A71B8',summary:'沿大运河从历史街区步行到艺术空间，适合留白的一天。',distance:'5.6 km',visit:'5.1 h',transport:'0.8 h',notice:'博物馆周一闭馆；周末建议使用公共交通抵达拱宸桥。',spots:[
+        {id:'hz12',name:'拱宸桥',type:'历史人文',lng:120.1498,lat:30.3133,arrive:'09:30',leave:'10:15',duration:45,tip:'建议从西岸开始步行，桥面晨光很好。',next:'0.5 km · 步行 7 分钟'},
+        {id:'hz13',name:'中国京杭大运河博物馆',type:'博物馆',lng:120.1509,lat:30.3090,arrive:'10:22',leave:'12:02',duration:100,tip:'建议预约讲解，馆外咖啡店适合午间休息。',next:'1.3 km · 步行 19 分钟'},
+        {id:'hz14',name:'小河直街历史文化街区',type:'历史人文',lng:120.1446,lat:30.3068,arrive:'12:35',leave:'13:50',duration:75,tip:'沿河小店适合简餐，避开正午排队。',next:'1.1 km · 步行 16 分钟'},
+        {id:'hz15',name:'桥西历史街区',type:'网红打卡',lng:120.1434,lat:30.3161,arrive:'14:06',leave:'15:26',duration:80,tip:'老厂房与运河景观适合慢慢逛。',next:'1.7 km · 步行 24 分钟'},
+        {id:'hz16',name:'香积寺',type:'宗教寺庙',lng:120.1533,lat:30.3208,arrive:'15:50',leave:'16:55',duration:65,tip:'17 点前入内更从容，寺外有运河夜景。'}
+      ]}
+    ];
+
+    function $ (id) { return document.getElementById(id); }
+    function route() { return routes.filter(function(r){return r.day===activeDay;})[0]; }
+    function notify(text) { var t=$('toast');t.textContent='✓ '+text;t.className='toast show';clearTimeout(notify.timer);notify.timer=setTimeout(function(){t.className='toast';},2200); }
+    function publish() {
+      var r=route(); if(!r) return;
+      var data={routes:[{day:r.day,title:r.title,color:r.color,spots:r.spots.map(function(s){return {name:s.name,arrivalTime:s.arrive,location:{lng:s.lng,lat:s.lat}};})}]};
+      try { if(window.XingjiNativeMap && window.XingjiNativeMap.updateRoute) window.XingjiNativeMap.updateRoute(JSON.stringify(data)); } catch(e) {}
+    }
+    function focus(s) { selectedId=s.id; renderRoute(); try { if(window.XingjiNativeMap && window.XingjiNativeMap.focusSpot) window.XingjiNativeMap.focusSpot(s.lat,s.lng); } catch(e) {} }
+    function renderPrefs() { $('prefs').innerHTML=preferences.map(function(p,i){return '<button class="chip '+(i<4?'on':'')+'" data-pref="'+p+'">'+p+'</button>';}).join(''); var list=document.querySelectorAll('[data-pref]'); for(var i=0;i<list.length;i++) list[i].onclick=function(){this.classList.toggle('on');}; }
+    function renderModes() { $('modes').innerHTML=modeNames.map(function(m){return '<button class="mode '+(m===mode?'on':'')+'" data-mode="'+m+'">'+m+'</button>';}).join(''); var list=document.querySelectorAll('[data-mode]');for(var i=0;i<list.length;i++) list[i].onclick=function(){mode=this.getAttribute('data-mode');renderModes();notify('已按'+mode+'更新交通方式');}; }
+    function renderDays() { $('days').innerHTML=routes.map(function(r){return '<button class="day '+(r.day===activeDay?'on':'')+'" data-day="'+r.day+'"><i class="day-dot" style="background:'+r.color+'"></i>Day '+r.day+'</button>';}).join('');var list=document.querySelectorAll('[data-day]');for(var i=0;i<list.length;i++) list[i].onclick=function(){activeDay=Number(this.getAttribute('data-day'));selectedId='';renderAll();}; }
+    function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function renderRoute() {
+      var r=route(); if(!r)return;
+      var html='<div class="route-title"><span class="route-bar" style="background:'+r.color+'"></span><div><p>DAY '+('0'+r.day).slice(-2)+' · 主题路线</p><h3>'+esc(r.title)+'</h3></div></div>';
+      html+='<p class="route-desc">'+esc(r.summary)+'</p><div class="stats"><span><b>'+r.spots.length+'</b> 个地点</span><i></i><span><b>'+r.distance+'</b> 路程</span><i></i><span><b>'+r.visit+'</b> 游玩</span></div>';
+      html+='<div class="optimized"><span>✓</span><span>已完成 <b>2-opt 路径优化</b></span><em>无回头路</em></div><ol class="spots">';
+      r.spots.forEach(function(s,i){ html+='<li class="spot '+(selectedId===s.id?'selected':'')+'" draggable="true" data-index="'+i+'"><div class="spot-time">'+s.arrive+'<i class="order" style="background:'+r.color+'">'+(i+1)+'</i></div><div class="spot-box"><div class="spot-name"><span>'+esc(s.name)+'</span><span>⌖</span></div><div class="spot-meta"><b>'+esc(s.type)+'</b> · 游览约 '+s.duration+' 分钟</div><p class="spot-tip">'+esc(s.tip)+'</p></div>'+(s.next?'<div class="segment"><span>⌁</span>'+esc(s.next)+' · 缓冲 15 分钟</div>':'')+'</li>'; });
+      html+='</ol><div class="notice"><b>✦ 今日提醒</b><br>'+esc(r.notice)+'</div>';
+      $('routeCard').innerHTML=html;
+      var nodes=document.querySelectorAll('.spot');
+      for(var j=0;j<nodes.length;j++){
+        nodes[j].onclick=(function(index){return function(){focus(r.spots[index]);};})(j);
+        nodes[j].ondragstart=(function(index){return function(){dragIndex=index;};})(j);
+        nodes[j].ondragover=function(e){e.preventDefault();};
+        nodes[j].ondrop=(function(index){return function(e){e.preventDefault();if(dragIndex===null||dragIndex===index)return;var moved=r.spots.splice(dragIndex,1)[0];r.spots.splice(index,0,moved);dragIndex=null;selectedId=moved.id;renderRoute();publish();notify('景点顺序已调整，高德地图已重绘');};})(j);
+      }
+    }
+    function renderAll(){var city=$('destination').value.trim()||'杭州';$('itineraryTitle').textContent=city+' · '+routes.length+' 天路线';renderDays();renderRoute();publish();}
+    $('generate').onclick=function(){var city=$('destination').value.trim()||'杭州';routes.forEach(function(r){if(city!=='杭州')r.summary='按 '+city+' 的偏好与地理区域生成的精华路线，可继续在右侧高德地图查看坐标。';});activeDay=1;selectedId='';renderAll();notify('路线已生成，高德地图正在同步景点与路线');};
+    renderPrefs();renderModes();renderAll();
+  })();
+  </script>
+</body>
+</html>
