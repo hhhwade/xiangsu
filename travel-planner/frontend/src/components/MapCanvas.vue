@@ -194,7 +194,7 @@ function drawAmap() {
         position: [spot.location.lng, spot.location.lat],
         offset: new AMap.Pixel(-18, -18),
         zIndex: selected ? 30 : 15 + index,
-        content: `<div class="amap-marker ${selected ? 'is-selected' : ''}" style="--marker-color:${route.color}"><b>${index + 1}</b></div>`,
+        content: `<div class="amap-marker ${selected ? 'is-selected' : ''}" style="--pin-color:${route.color}"><b>${index + 1}</b></div>`,
         title: spot.name,
       })
       marker.on('click', () => {
