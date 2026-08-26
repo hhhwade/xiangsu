@@ -100,6 +100,24 @@
     .notice b { color:#a16442; }
     .toast { position:fixed; z-index:9; left:50%; bottom:13px; max-width:calc(100% - 24px); padding:9px 12px; border-radius:8px; color:#37655a; background:#f6fff8; box-shadow:0 10px 24px rgba(20,50,42,.22); font-size:10px; font-weight:700; opacity:0; transform:translate(-50%,10px); transition:.2s; pointer-events:none; }
     .toast.show { opacity:1; transform:translate(-50%,0); }
+    .spot-modal { position:fixed; z-index:30; inset:0; display:none; }
+    .spot-modal.show { display:block; }
+    .modal-scrim { position:absolute; inset:0; background:rgba(10,39,36,.42); backdrop-filter:blur(2px); }
+    .spot-sheet { position:absolute; right:10px; bottom:10px; left:10px; overflow:hidden; max-height:calc(100% - 20px); border-radius:18px; background:#fff; box-shadow:0 18px 42px rgba(15,47,41,.28); }
+    .detail-image { position:relative; height:132px; overflow:hidden; background:#dcece2; }
+    .detail-image:after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 43%,rgba(14,45,40,.43)); pointer-events:none; }
+    .detail-image img { width:100%; height:100%; object-fit:cover; display:block; }
+    .detail-image .image-caption { position:absolute; z-index:1; bottom:10px; left:13px; color:#fff; font-size:10px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.28); }
+    .detail-close { position:absolute; z-index:2; top:9px; right:9px; display:grid; width:28px; height:28px; place-items:center; border:0; border-radius:50%; color:#2e514b; background:rgba(255,255,255,.9); font-size:18px; }
+    .detail-body { padding:13px 14px 14px; }
+    .detail-type { display:inline-flex; padding:3px 6px; border-radius:5px; color:#a55c37; background:#fff0e8; font-size:9px; font-weight:800; }
+    .detail-title { margin:7px 0 4px; color:#244743; font-family:serif; font-size:20px; letter-spacing:-.02em; }
+    .detail-time { color:#729087; font-size:10px; }
+    .detail-overview-label { margin-top:11px; color:#3d776a; font-size:10px; font-weight:800; }
+    .detail-overview { margin:5px 0 0; color:#5d746e; font-size:11px; line-height:1.58; }
+    .detail-address { margin:9px 0 0; padding:8px; border-radius:8px; color:#81928c; background:#f6f8f5; font-size:9px; line-height:1.45; }
+    .detail-address b { color:#5c756e; }
+    .detail-focus { width:100%; height:36px; margin-top:11px; border:0; border-radius:9px; color:#fff; background:linear-gradient(135deg,#348370,#276b5e); font-size:10px; font-weight:800; }
   </style>
 </head>
 <body>
@@ -142,6 +160,22 @@
       <section class="route-card" id="routeCard"></section>
     </section>
     <div class="toast" id="toast"></div>
+    <section class="spot-modal" id="spotModal" aria-hidden="true">
+      <div class="modal-scrim" id="detailScrim"></div>
+      <article class="spot-sheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <div class="detail-image"><img id="detailImage" alt="景点图片"><span class="image-caption">景点图片</span></div>
+        <button class="detail-close" id="detailClose" aria-label="关闭景点详情">×</button>
+        <div class="detail-body">
+          <span class="detail-type" id="detailType"></span>
+          <h3 class="detail-title" id="detailTitle"></h3>
+          <div class="detail-time" id="detailTime"></div>
+          <div class="detail-overview-label">景点概述</div>
+          <p class="detail-overview" id="detailOverview"></p>
+          <p class="detail-address" id="detailAddress"></p>
+          <button class="detail-focus" id="detailFocus">在下方高德地图中定位</button>
+        </div>
+      </article>
+    </section>
   </main>
   <script src="route-panel.js"></script>
 </body>

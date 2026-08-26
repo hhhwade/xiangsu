@@ -17,6 +17,7 @@
   var routes = [];
   var routeRevision = 0;
   var nativePoiCache = {};
+  var detailSpot = null;
 
   /* National city centre cache. Inputs outside this cache still work in offline
      demonstration mode with a deterministic China-region fallback; production API
@@ -156,6 +157,27 @@
   function formatTime(total) { total=Math.max(0,total); return ('0'+Math.floor(total/60)).slice(-2)+':'+('0'+(total%60)).slice(-2); }
   function haversine(a,b) { var r=6371,rad=Math.PI/180,dl=(b.lat-a.lat)*rad,dn=(b.lng-a.lng)*rad;var x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dn/2)*Math.sin(dn/2);return 2*r*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
   function notify(text) { var t=$('toast');t.textContent='✓ '+text;t.className='toast show';clearTimeout(notify.timer);notify.timer=setTimeout(function(){t.className='toast';},2400); }
+  function fallbackImage(type) {
+    if(type==='自然风光'||type==='户外运动') return 'images/nature.jpg';
+    if(type==='博物馆') return 'images/museum.jpg';
+    if(type==='美食探店') return 'images/food.jpg';
+    if(type==='宗教寺庙') return 'images/temple.jpg';
+    if(type==='历史人文') return 'images/culture.jpg';
+    return 'images/city.jpg';
+  }
+  function closeSpotDetail() { $('spotModal').className='spot-modal'; $('spotModal').setAttribute('aria-hidden','true'); detailSpot=null; }
+  function openSpotDetail(spot) {
+    detailSpot=spot;
+    $('detailType').textContent=spot.type||'特色景点';
+    $('detailTitle').textContent=spot.name;
+    $('detailTime').textContent='第 '+((route().spots.indexOf(spot))+1)+' 站 · '+spot.arrive+' 到达 · '+spot.leave+' 离开 · 游览约 '+spot.duration+' 分钟';
+    $('detailOverview').textContent=spot.overview||spot.tip||'该景点的概述将在高德 POI 返回后更新。';
+    $('detailAddress').innerHTML=spot.address?'<b>地址</b> · '+esc(spot.address):'<b>位置</b> · 可在下方高德地图查看该景点的准确位置。';
+    var image=$('detailImage'); image.onerror=function(){ image.onerror=null; image.src=fallbackImage(spot.type); };
+    image.src=spot.imageUrl||fallbackImage(spot.type);
+    $('spotModal').className='spot-modal show';
+    $('spotModal').setAttribute('aria-hidden','false');
+  }
   function chosenTypes() { return selectedPrefs.length ? selectedPrefs.slice() : ['城市漫游']; }
   function spotOverview(city, type, name) {
     if(landmarkOverviews[name]) return landmarkOverviews[name];
@@ -188,7 +210,7 @@
     if(nativePois && nativePois.length) {
       for(i=0;i<nativePois.length;i++) {
         var poi=nativePois[i];
-        pool.push({id:poi.id||('amap-'+i),name:poi.name,type:poi.type||'高德推荐景点',lng:poi.lng,lat:poi.lat,duration:55+(i%4)*15,overview:poi.overview||spotOverview(city,poi.type||'',poi.name),tip:poi.address?('地址：'+poi.address):'高德实时 POI 坐标，建议结合地图查看周边交通。'});
+        pool.push({id:poi.id||('amap-'+i),name:poi.name,type:poi.type||'高德推荐景点',lng:poi.lng,lat:poi.lat,duration:55+(i%4)*15,overview:poi.overview||spotOverview(city,poi.type||'',poi.name),address:poi.address||'',imageUrl:poi.imageUrl||'',tip:poi.address?('地址：'+poi.address):'高德实时 POI 坐标，建议结合地图查看周边交通。'});
       }
     } else if(source) {
       for(i=0;i<source.length;i++) {
@@ -276,7 +298,7 @@
     html+='<div class="optimized"><span>✓</span><span>已完成 <b>区域聚类 + 2-opt</b></span><em>'+profile.label+'路线</em></div><ol class="spots">';
     r.spots.forEach(function(s,i){html+='<li class="spot '+(selectedId===s.id?'selected':'')+'" draggable="true" data-index="'+i+'"><div class="spot-time">'+s.arrive+'<i class="order" style="background:'+r.color+'">'+(i+1)+'</i></div><div class="spot-box"><div class="spot-name"><span>'+esc(s.name)+'</span><span>⌖</span></div><div class="spot-meta"><b>'+esc(s.type)+'</b> · 游览约 '+s.duration+' 分钟 · '+s.leave+' 离开</div><p class="spot-desc"><b>景点概述</b>'+esc(s.overview||s.tip||'该景点的概述将在高德 POI 返回后更新。')+'</p><p class="spot-tip">'+esc(s.tip||'')+'</p></div>'+(s.next?'<div class="segment"><span>⌁</span>'+esc(s.next)+' · 缓冲 15 分钟</div>':'')+'</li>';});
     html+='</ol><div class="notice"><b>✦ 今日提醒</b><br>'+esc(r.notice)+'</div>';$('routeCard').innerHTML=html;
-    var nodes=document.querySelectorAll('.spot');for(var j=0;j<nodes.length;j++){nodes[j].onclick=(function(index){return function(){focus(r.spots[index]);};})(j);nodes[j].ondragstart=(function(index){return function(){dragIndex=index;};})(j);nodes[j].ondragover=function(e){e.preventDefault();};nodes[j].ondrop=(function(index){return function(e){e.preventDefault();if(dragIndex===null||dragIndex===index)return;var moved=r.spots.splice(dragIndex,1)[0];r.spots.splice(index,0,moved);dragIndex=null;selectedId=moved.id;renderRoute();publish();notify('景点顺序已调整，右侧高德地图已重绘');};})(j);}
+    var nodes=document.querySelectorAll('.spot');for(var j=0;j<nodes.length;j++){nodes[j].onclick=(function(index){return function(){focus(r.spots[index]);openSpotDetail(r.spots[index]);};})(j);nodes[j].ondragstart=(function(index){return function(){dragIndex=index;};})(j);nodes[j].ondragover=function(e){e.preventDefault();};nodes[j].ondrop=(function(index){return function(e){e.preventDefault();if(dragIndex===null||dragIndex===index)return;var moved=r.spots.splice(dragIndex,1)[0];r.spots.splice(index,0,moved);dragIndex=null;selectedId=moved.id;renderRoute();publish();notify('景点顺序已调整，右侧高德地图已重绘');};})(j);}
   }
   function toggleEditor(forceOpen) { var editor=$('editor'); var open=forceOpen===true || editor.className.indexOf('collapsed')>=0; editor.className=open?'editor':'editor collapsed'; $('toggleEditor').textContent=open?'收起参数':'调整行程'; }
   function renderAll() { var city=$('destination').value.trim()||'杭州';$('itineraryTitle').textContent=city+' · '+routes.length+' 天路线';$('overviewCity').textContent=city;$('overviewDays').textContent=routes.length+' 天';$('overviewHours').textContent=$('hours').value+' 小时';$('overviewMode').textContent=modeProfiles[selectedMode].label;renderDays();renderRoute();publish(); }
@@ -286,5 +308,8 @@
   $('quickGenerate').onclick=function(){toggleEditor(true);$('destination').focus();};
   $('toggleEditor').onclick=function(){toggleEditor(false);};
   $('inlineEdit').onclick=function(){toggleEditor(true);};
+  $('detailClose').onclick=closeSpotDetail;
+  $('detailScrim').onclick=closeSpotDetail;
+  $('detailFocus').onclick=function(){ if(detailSpot){ focus(detailSpot); } closeSpotDetail(); };
   initCityList();renderPrefs();renderModes();generatePlan(false);
 })();

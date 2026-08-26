@@ -30,6 +30,7 @@ import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.PolylineOptions;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.poisearch.Photo;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
 
@@ -187,12 +188,18 @@ public final class MainActivity extends Activity {
                                 JSONObject poi = new JSONObject();
                                 String type = emptyTo(item.getTypeDes(), "高德推荐景点");
                                 String address = emptyTo(item.getSnippet(), "高德 POI 实时返回地点");
+                                String imageUrl = "";
+                                if (item.getPhotos() != null && !item.getPhotos().isEmpty()) {
+                                    Photo firstPhoto = item.getPhotos().get(0);
+                                    if (firstPhoto != null && firstPhoto.getUrl() != null) imageUrl = firstPhoto.getUrl();
+                                }
                                 poi.put("id", item.getPoiId());
                                 poi.put("name", item.getTitle());
                                 poi.put("type", type);
                                 poi.put("lng", point.getLongitude());
                                 poi.put("lat", point.getLatitude());
                                 poi.put("address", address);
+                                poi.put("imageUrl", imageUrl);
                                 poi.put("overview", buildPoiOverview(city, item.getTitle(), type));
                                 pois.put(poi);
                             } catch (Exception ignored) {
