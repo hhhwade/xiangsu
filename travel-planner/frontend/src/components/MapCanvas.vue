@@ -317,6 +317,24 @@ function selectFallbackSpot(spot: RouteSpot) {
   showDetails.value = true
 }
 
+/**
+ * AMap URI API opens the real AMap client when installed and falls back to its
+ * web map otherwise. This is intentionally keyless: Android/JS SDK credentials
+ * are not safe to expose as a generic WebView navigation parameter.
+ */
+function openInAmap() {
+  const spot = props.selectedSpot || props.route?.spots[0]
+  if (!spot) return
+  const position = `${spot.location.lng},${spot.location.lat}`
+  const url = new URL('https://uri.amap.com/marker')
+  url.searchParams.set('position', position)
+  url.searchParams.set('name', spot.name)
+  url.searchParams.set('coordinate', 'gaode')
+  url.searchParams.set('callnative', '1')
+  url.searchParams.set('src', 'xingji')
+  window.location.assign(url.toString())
+}
+
 watch([visibleRoutes, () => props.selectedSpot?.id], () => {
   if (amapReady.value) drawAmap()
   if (props.selectedSpot) void focusNativeSpot(props.selectedSpot)
@@ -409,6 +427,7 @@ onBeforeUnmount(() => {
       <span class="legend-divider"></span><span class="transport-legend">{{ ({ walking: '步行', riding: '骑行', driving: '自驾', transit: '公共交通' } as Record<string, string>)[transportMode] }}</span>
     </div>
 
+    <button class="amap-nav-button" type="button" :disabled="!selectedSpot && !route?.spots.length" @click="openInAmap"><span>⌖</span>在高德地图查看</button>
     <button class="map-style-button" type="button" @click="showDetails = !showDetails"><span>⊕</span>{{ showDetails ? '收起详情' : '路线详情' }}</button>
 
     <aside v-if="selectedSpot && (showDetails || (!amapReady && !nativeAmapReady))" class="map-spot-card">

@@ -253,8 +253,13 @@ button:disabled { cursor: wait; }
 .map-legend i { width: 7px; height: 7px; border-radius: 50%; }
 .legend-divider { width: 1px; height: 11px; background: #dce2db; }
 .transport-legend { color: #85928f; }
-.map-style-button { position: absolute; z-index: 12; right: 24px; bottom: 136px; height: 32px; padding: 0 10px; border: 1px solid rgba(215,224,215,.9); border-radius: 7px; color: #4a6963; background: rgba(255,255,252,.94); box-shadow: 0 4px 14px rgba(38,55,43,.1); font-size: 9px; font-weight: 700; }
+.map-style-button, .amap-nav-button { position: absolute; z-index: 12; right: 24px; height: 32px; padding: 0 10px; border-radius: 7px; box-shadow: 0 4px 14px rgba(38,55,43,.1); font-size: 9px; font-weight: 700; }
+.map-style-button { bottom: 136px; border: 1px solid rgba(215,224,215,.9); color: #4a6963; background: rgba(255,255,252,.94); }
 .map-style-button span { margin-right: 4px; font-size: 13px; }
+.amap-nav-button { bottom: 176px; border: 1px solid #db8b63; color: #fff; background: #d46f3f; }
+.amap-nav-button:hover:not(:disabled) { background: #bf5c31; }
+.amap-nav-button:disabled { opacity: .55; cursor: not-allowed; }
+.amap-nav-button span { margin-right: 4px; font-size: 13px; }
 .map-demo-badge, .map-native-badge { position: absolute; z-index: 9; right: 24px; top: 75px; padding: 7px 9px; border-radius: 6px; font-size: 9px; box-shadow: 0 4px 14px rgba(74,62,44,.08); }
 .map-demo-badge { border: 1px solid #ece0cb; color: #9b7550; background: rgba(255,250,241,.92); }
 .map-demo-badge span { margin-right: 4px; color: #d87544; }
@@ -344,6 +349,7 @@ button:disabled { cursor: wait; }
   .map-legend { top: 64px; left: 13px; }
   .map-demo-badge { display: none; }
   .map-style-button { right: 13px; bottom: 128px; }
+  .amap-nav-button { right: 13px; bottom: 168px; }
   .map-spot-card { top: 108px; right: 13px; }
   .route-health-card { left: 13px; bottom: 126px; }
   .timeline-strip { height: 111px; padding: 11px 13px; }

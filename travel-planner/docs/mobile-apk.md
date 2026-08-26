@@ -5,7 +5,7 @@
 本次已在本地完成一个可安装的 Android debug APK：
 
 ```text
-travel-planner/release/xingji-smart-travel-v1.0.0-debug.apk
+travel-planner/release/xingji-smart-travel-v1.0.1-debug.apk
 ```
 
 - 应用名：**行迹智能旅行**
@@ -14,7 +14,7 @@ travel-planner/release/xingji-smart-travel-v1.0.0-debug.apk
 - 签名：已通过 ZIP 对齐和 v1 / v2 / v3 debug 签名验证
 - SHA-256：见同目录 `.sha256` 文件
 
-该 APK 把 Vue 路线规划 UI、离线候选池、路线卡片、拖拽排序、时间线和地图预览全部打入软件，不依赖 `localhost` 或本地后端。首次安装时，请在 Android 系统中允许对应浏览器/文件管理器“安装未知应用”。
+该 APK 把 Vue 路线规划 UI、离线候选池、路线卡片、拖拽排序、时间线和地图预览全部打入软件，不依赖 `localhost` 或本地后端。地图面板新增“在高德地图查看”入口：手机安装高德地图时会打开真实高德客户端查看所选景点，未安装时自动回退到高德网页地图。首次安装时，请在 Android 系统中允许对应浏览器/文件管理器“安装未知应用”。
 
 > 这是 debug 签名包，适合安装测试；生产发布和应用商店上架必须使用你自己保存的 release keystore 重签名。
 
