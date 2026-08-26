@@ -15,6 +15,7 @@
   var selectedId = '';
   var dragIndex = null;
   var routes = [];
+  var routeRevision = 0;
 
   /* National city centre cache. Inputs outside this cache still work in offline
      demonstration mode with a deterministic China-region fallback; production API
@@ -159,7 +160,8 @@
   }
   function publish() {
     var r=route(); if(!r)return;
-    var data={transportMode:r.transportMode,routes:[{day:r.day,title:r.title,color:r.color,spots:r.spots.map(function(s){return {name:s.name,arrivalTime:s.arrive,location:{lng:s.lng,lat:s.lat}};})}]};
+    routeRevision++;
+    var data={revision:routeRevision,transportMode:r.transportMode,routes:[{day:r.day,title:r.title,color:r.color,spots:r.spots.map(function(s){return {name:s.name,arrivalTime:s.arrive,location:{lng:s.lng,lat:s.lat}};})}]};
     try { if(window.XingjiNativeMap && window.XingjiNativeMap.updateRoute) window.XingjiNativeMap.updateRoute(JSON.stringify(data)); } catch(e) {}
   }
   function focus(s) { selectedId=s.id;renderRoute();try{if(window.XingjiNativeMap&&window.XingjiNativeMap.focusSpot)window.XingjiNativeMap.focusSpot(s.lat,s.lng);}catch(e){} }

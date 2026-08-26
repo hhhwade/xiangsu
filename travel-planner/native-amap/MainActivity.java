@@ -5,7 +5,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
@@ -15,6 +17,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
@@ -43,6 +46,8 @@ public final class MainActivity extends Activity {
     private MapView mapView;
     private AMap amap;
     private WebView webView;
+    private TextView mapRouteCaption;
+    private long lastRouteRevision = -1L;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -59,12 +64,14 @@ public final class MainActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(245, 244, 239));
 
-        webView = createPlannerWebView();
+        // Construct the map before loading the WebView. This removes a startup race
+        // where a first route payload could arrive before MapView was ready.
         mapView = new MapView(this);
         mapView.onCreate(state);
         amap = mapView.getMap();
         amap.getUiSettings().setZoomControlsEnabled(true);
         amap.getUiSettings().setCompassEnabled(false);
+        webView = createPlannerWebView();
 
         root.addView(webView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.56f));
         View divider = new View(this);
@@ -72,8 +79,28 @@ public final class MainActivity extends Activity {
         root.addView(divider, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) dp(3)));
         FrameLayout mapFrame = new FrameLayout(this);
         mapFrame.addView(mapView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        mapRouteCaption = createMapRouteCaption();
+        FrameLayout.LayoutParams captionParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        captionParams.leftMargin = (int) dp(10);
+        captionParams.topMargin = (int) dp(10);
+        mapFrame.addView(mapRouteCaption, captionParams);
         root.addView(mapFrame, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.44f));
         setContentView(root);
+    }
+
+    private TextView createMapRouteCaption() {
+        TextView caption = new TextView(this);
+        caption.setText("高德地图 · 等待路线同步");
+        caption.setTextColor(Color.rgb(38, 79, 72));
+        caption.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        caption.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        caption.setPadding((int) dp(9), (int) dp(6), (int) dp(9), (int) dp(6));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.argb(238, 255, 255, 252));
+        background.setCornerRadius(dp(8));
+        background.setStroke((int) dp(1), Color.rgb(214, 226, 216));
+        caption.setBackground(background);
+        return caption;
     }
 
     private WebView createPlannerWebView() {
@@ -130,6 +157,11 @@ public final class MainActivity extends Activity {
         if (amap == null || payload == null || payload.isEmpty()) return;
         try {
             JSONObject body = new JSONObject(payload);
+            long revision = body.optLong("revision", lastRouteRevision + 1L);
+            // WebView callbacks can be queued while a user changes day/mode quickly.
+            // Never repaint an older route over a newer selection.
+            if (revision < lastRouteRevision) return;
+            lastRouteRevision = revision;
             String transportMode = body.optString("transportMode", "driving");
             JSONArray routes = body.optJSONArray("routes");
             if (routes == null) return;
@@ -140,6 +172,10 @@ public final class MainActivity extends Activity {
             for (int routeIndex = 0; routeIndex < routes.length(); routeIndex++) {
                 JSONObject route = routes.optJSONObject(routeIndex);
                 if (route == null) continue;
+                int day = route.optInt("day", 1);
+                if (mapRouteCaption != null) {
+                    mapRouteCaption.setText("Day " + day + " · " + route.optString("title", "经典路线") + " · " + transportLabel(transportMode) + " · 编号已同步");
+                }
                 int color = Color.parseColor(route.optString("color", "#D46F3F"));
                 JSONArray spots = route.optJSONArray("spots");
                 if (spots == null || spots.length() == 0) continue;
@@ -159,7 +195,6 @@ public final class MainActivity extends Activity {
                     hasPoint = true;
                     String name = spot.optString("name", "景点");
                     String arrival = spot.optString("arrivalTime", "");
-                    int day = route.optInt("day", 1);
                     // The visible number is intentionally the same index as the
                     // corresponding route card above the map: no guesswork between
                     // the classic route list and the AMap marker order.
@@ -173,15 +208,27 @@ public final class MainActivity extends Activity {
                 }
                 if (points.size() > 1) {
                     float width = dp("driving".equals(transportMode) ? 9 : "riding".equals(transportMode) ? 7 : 6);
-                    PolylineOptions line = new PolylineOptions()
-                        .addAll(points)
-                        .width(width)
-                        .color(color)
-                        .zIndex(5f);
-                    // Public transit is visually distinct; the JS route generator also
-                    // changes stop order and segment durations for every transport mode.
-                    if ("transit".equals(transportMode)) line.setDottedLine(true);
-                    amap.addPolyline(line);
+                    // Draw each segment separately and add a directional arrow in its
+                    // midpoint. Together with numbered markers this makes the exact
+                    // 1 → 2 → 3 order visually unambiguous on the native map.
+                    for (int segment = 0; segment < points.size() - 1; segment++) {
+                        LatLng from = points.get(segment);
+                        LatLng to = points.get(segment + 1);
+                        PolylineOptions line = new PolylineOptions()
+                            .add(from, to)
+                            .width(width)
+                            .color(color)
+                            .zIndex(5f);
+                        if ("transit".equals(transportMode)) line.setDottedLine(true);
+                        amap.addPolyline(line);
+                        LatLng midpoint = new LatLng((from.latitude + to.latitude) / 2d, (from.longitude + to.longitude) / 2d);
+                        amap.addMarker(new MarkerOptions()
+                            .position(midpoint)
+                            .icon(routeArrow(color))
+                            .anchor(0.5f, 0.5f)
+                            .rotateAngle(bearing(from, to))
+                            .zIndex(7f));
+                    }
                 }
             }
             if (hasPoint) {
@@ -190,6 +237,44 @@ public final class MainActivity extends Activity {
         } catch (Exception ignored) {
             // Invalid bridge data should never break the native map or the route list.
         }
+    }
+
+    private String transportLabel(String mode) {
+        if ("walking".equals(mode)) return "步行";
+        if ("riding".equals(mode)) return "骑行";
+        if ("transit".equals(mode)) return "公交";
+        return "自驾";
+    }
+
+    private com.amap.api.maps.model.BitmapDescriptor routeArrow(int color) {
+        int size = Math.max(16, (int) dp(18));
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(Color.WHITE);
+        Path border = new Path();
+        border.moveTo(size * 0.18f, size * 0.12f);
+        border.lineTo(size * 0.88f, size * 0.5f);
+        border.lineTo(size * 0.18f, size * 0.88f);
+        border.close();
+        canvas.drawPath(border, paint);
+        paint.setColor(color);
+        Path arrow = new Path();
+        arrow.moveTo(size * 0.26f, size * 0.22f);
+        arrow.lineTo(size * 0.78f, size * 0.5f);
+        arrow.lineTo(size * 0.26f, size * 0.78f);
+        arrow.close();
+        canvas.drawPath(arrow, paint);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    private float bearing(LatLng from, LatLng to) {
+        double fromLat = Math.toRadians(from.latitude);
+        double toLat = Math.toRadians(to.latitude);
+        double deltaLng = Math.toRadians(to.longitude - from.longitude);
+        double y = Math.sin(deltaLng) * Math.cos(toLat);
+        double x = Math.cos(fromLat) * Math.sin(toLat) - Math.sin(fromLat) * Math.cos(toLat) * Math.cos(deltaLng);
+        return (float) ((Math.toDegrees(Math.atan2(y, x)) + 360d) % 360d);
     }
 
     /** Draw a numbered, route-coloured marker so map order stays visibly aligned with cards. */
