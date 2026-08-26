@@ -73,7 +73,7 @@ public final class MainActivity extends Activity {
         amap.getUiSettings().setCompassEnabled(false);
         webView = createPlannerWebView();
 
-        root.addView(webView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.56f));
+        root.addView(webView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.62f));
         View divider = new View(this);
         divider.setBackgroundColor(Color.rgb(218, 227, 218));
         root.addView(divider, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) dp(3)));
@@ -84,7 +84,7 @@ public final class MainActivity extends Activity {
         captionParams.leftMargin = (int) dp(10);
         captionParams.topMargin = (int) dp(10);
         mapFrame.addView(mapRouteCaption, captionParams);
-        root.addView(mapFrame, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.44f));
+        root.addView(mapFrame, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.38f));
         setContentView(root);
     }
 

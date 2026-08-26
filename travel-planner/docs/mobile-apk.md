@@ -1,11 +1,11 @@
 # Android 安装包、签名与高德 Key 说明
 
-## 已生成：Release 签名 APK v1.0.8
+## 已生成：Release 签名 APK v1.0.9
 
 下载文件：
 
 ```text
-travel-planner/release/xingji-smart-travel-amap-v1.0.8-release.apk
+travel-planner/release/xingji-smart-travel-amap-v1.0.9-release.apk
 ```
 
 | 项 | 值 |
@@ -14,7 +14,7 @@ travel-planner/release/xingji-smart-travel-amap-v1.0.8-release.apk
 | 包名 | `com.xingji.travel` |
 | 最低 Android | API 21 / Android 5.0 |
 | target SDK | API 34 |
-| APK SHA-256 | `ed37dbab6d1c249019ef42fb43518db9c64abdcfa44757c1cb4bfcf6179785d5` |
+| APK SHA-256 | `381c0234cab176e416bc71e48e56ca12207c4fafabec016216bd7a35e50c6cbe` |
 | 签名 | RSA-3072 Release 签名，v1 / v2 / v3 已验证 |
 
 ## 安装前必做
@@ -40,7 +40,7 @@ PackageName: com.xingji.travel
 
 ## 路线与地图同步机制
 
-v1.0.8 对同步链路增加了三个保证：
+v1.0.9 对同步链路增加了三个保证：
 
 1. **相同编号**：路线卡片第 N 站，对应地图中同色圆形 Marker N；
 2. **方向箭头**：每条 Marker 间 Polyline 有方向箭头，清楚显示 N → N+1；
@@ -54,7 +54,7 @@ Day N · 当前经典路线 · 当前交通方式 · 编号已同步
 
 ## 手机产品能力
 
-| 用户需求 | v1.0.8 实现 |
+| 用户需求 | v1.0.9 实现 |
 |---|---|
 | 手机布局 | 竖屏，上方可滚动路线面板，下方固定高德地图 |
 | 城市 | 全国城市中心建议；热门城市景点种子池；其余城市离线扩展路线；部署 API 后可切换实时高德 POI |
