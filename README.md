@@ -27,7 +27,7 @@ cd travel-planner/frontend && npm ci && npm run build
 cd ../backend && PYTHONPATH=. .venv/bin/python -W error -m pytest -q
 ```
 
-已生成的原生高德地图安装包位于 [`travel-planner/release/xingji-smart-travel-amap-v1.0.3-debug.apk`](travel-planner/release/xingji-smart-travel-amap-v1.0.3-debug.apk)（不提交至 Git，仅作为交付物保留在工作区）。它以横屏双栏方式在旅游路线右侧直接显示高德地图、Marker 与路线 Polyline；完整的 APK 验证、安装、重签名和高德 Key 绑定说明见 [mobile-apk.md](travel-planner/docs/mobile-apk.md)。
+已生成的原生高德地图安装包位于 [`travel-planner/release/xingji-smart-travel-amap-v1.0.4-debug.apk`](travel-planner/release/xingji-smart-travel-amap-v1.0.4-debug.apk)。它使用竖屏上路线、下高德地图的可滑动布局，支持全国城市扩展、1–30 天与交通方式重算；完整的 APK 验证、安装、重签名和高德 Key 绑定说明见 [mobile-apk.md](travel-planner/docs/mobile-apk.md)。
 
 ## 高德 Key 安全原则
 

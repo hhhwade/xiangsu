@@ -28,11 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Native Android AMap host for the landscape two-pane travel planner.
+ * Native Android AMap host for the portrait stacked travel planner.
  *
- * The Vue route list lives in the left WebView. It calls XingjiNativeMap.updateRoute
- * whenever the selected day, generated plan, or drag order changes; this native
- * MapView on the right then renders real AMap markers and coloured route polylines.
+ * The scrollable route panel lives above the map. It calls XingjiNativeMap.updateRoute
+ * whenever the selected day, generated plan, transport mode, or drag order changes;
+ * the native MapView below then renders real AMap markers and coloured route polylines.
  */
 public final class MainActivity extends Activity {
     private MapView mapView;
@@ -49,7 +49,9 @@ public final class MainActivity extends Activity {
         }
 
         LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.HORIZONTAL);
+        // Portrait stacked layout: route planner scrolls above, native AMap stays
+        // visible below. This avoids squeezing the route panel into a narrow column.
+        root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(245, 244, 239));
 
         webView = createPlannerWebView();
@@ -59,10 +61,10 @@ public final class MainActivity extends Activity {
         amap.getUiSettings().setZoomControlsEnabled(true);
         amap.getUiSettings().setCompassEnabled(false);
 
-        root.addView(webView, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 0.40f));
+        root.addView(webView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.56f));
         FrameLayout mapFrame = new FrameLayout(this);
         mapFrame.addView(mapView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-        root.addView(mapFrame, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 0.60f));
+        root.addView(mapFrame, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 0.44f));
         setContentView(root);
     }
 
@@ -120,6 +122,7 @@ public final class MainActivity extends Activity {
         if (amap == null || payload == null || payload.isEmpty()) return;
         try {
             JSONObject body = new JSONObject(payload);
+            String transportMode = body.optString("transportMode", "driving");
             JSONArray routes = body.optJSONArray("routes");
             if (routes == null) return;
             amap.clear();
@@ -155,11 +158,16 @@ public final class MainActivity extends Activity {
                         .zIndex(10f + spotIndex));
                 }
                 if (points.size() > 1) {
-                    amap.addPolyline(new PolylineOptions()
+                    float width = dp("driving".equals(transportMode) ? 9 : "riding".equals(transportMode) ? 7 : 6);
+                    PolylineOptions line = new PolylineOptions()
                         .addAll(points)
-                        .width(dp(6))
+                        .width(width)
                         .color(color)
-                        .zIndex(5f));
+                        .zIndex(5f);
+                    // Public transit is visually distinct; the JS route generator also
+                    // changes stop order and segment durations for every transport mode.
+                    if ("transit".equals(transportMode)) line.setDottedLine(true);
+                    amap.addPolyline(line);
                 }
             }
             if (hasPoint) {

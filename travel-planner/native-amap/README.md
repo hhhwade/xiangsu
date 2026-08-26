@@ -1,11 +1,12 @@
 # 原生高德地图宿主
 
-`MainActivity.java` 是 APK 中的原生 Android 双栏宿主：
+`MainActivity.java` 是 APK 中的原生 Android 竖屏宿主：
 
-- 横屏左侧：Vue 旅游路线表单、日期 Tab、景点顺序和时间线；
-- 横屏右侧：高德 Android `MapView`；
-- `web/index.html`：为 `file:///android_asset` 设计的无模块路线面板，保证左栏在 Android WebView 内不会空白；
-- `XingjiNativeMap` JavaScript bridge：前端生成/切换/拖拽路线后，向原生地图发送景点坐标、日期颜色和顺序；
+- 上半部分：可滚动的旅游路线表单、日期 Tab、景点顺序和时间线；
+- 下半部分：高德 Android `MapView`；
+- `web/index.html`：为 `file:///android_asset` 设计的无模块路线面板，保证路线区域在 Android WebView 内不会空白；
+- `web/route-panel.js`：全国城市中心缓存、1–30 天动态行程、偏好与交通方式重算；
+- `XingjiNativeMap` JavaScript bridge：前端生成/切换/拖拽路线后，向原生地图发送景点坐标、日期颜色、交通方式和顺序；
 - 原生层绘制 Marker、按日期配色的 Polyline，并自动缩放到全部景点范围。
 
 ## 安全约束

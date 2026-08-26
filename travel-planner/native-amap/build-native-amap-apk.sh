@@ -59,7 +59,7 @@ cat > "$OUT_DIR/apk/res/values/styles.xml" <<'EOF'
 EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10003" android:versionName="1.0.3">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10004" android:versionName="1.0.4">
  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -67,7 +67,7 @@ cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
  <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
  <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme" android:hardwareAccelerated="true" android:usesCleartextTraffic="true">
   <meta-data android:name="com.amap.api.v2.apikey" android:value="${AMAP_ANDROID_KEY}" />
-  <activity android:name="com.xingji.travel.MainActivity" android:exported="true" android:screenOrientation="landscape" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|uiMode">
+  <activity android:name="com.xingji.travel.MainActivity" android:exported="true" android:screenOrientation="portrait" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|uiMode">
    <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
   </activity>
  </application>
