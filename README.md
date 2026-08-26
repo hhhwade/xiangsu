@@ -27,7 +27,7 @@ cd travel-planner/frontend && npm ci && npm run build
 cd ../backend && PYTHONPATH=. .venv/bin/python -W error -m pytest -q
 ```
 
-APK 构建由 GitHub Actions 提供：进入 **Actions → Build Android APK**，下载 artifact `ai-beauty-app-debug` 中的 `app-debug.apk`。该 artifact 名称为历史工作流名称；应用内名称为“行迹智能旅行”。
+已生成的安装包位于 [`travel-planner/release/xingji-smart-travel-v1.0.0-debug.apk`](travel-planner/release/xingji-smart-travel-v1.0.0-debug.apk)（不提交至 Git，仅作为交付物保留在工作区）。完整的 APK 验证、安装、重签名和原生高德地图说明见 [mobile-apk.md](travel-planner/docs/mobile-apk.md)。
 
 ## 高德 Key 安全原则
 

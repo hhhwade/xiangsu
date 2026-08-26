@@ -1,9 +1,49 @@
 # Android APK 打包与高德 Key 说明
 
-本次交付包含两条移动端路径：
+## 已生成 APK
 
-1. **已交付 APK 路径（Flutter 壳）**：`app/` 将 Vue 旅行规划 UI 打入本地 WebView；内置离线候选池、路线卡片、拖拽、时间线与地图预览，因此不依赖公网后端也可安装体验。
-2. **原生高德地图路径（Capacitor）**：`travel-planner/frontend/android/` 集成了高德 Android SDK bridge；Android Key 仅在 Gradle 构建时注入，Android 真机可显示原生 MapView，并在 Web 层叠加路线颜色、序号与详情卡。
+本次已在本地完成一个可安装的 Android debug APK：
+
+```text
+travel-planner/release/xingji-smart-travel-v1.0.0-debug.apk
+```
+
+- 应用名：**行迹智能旅行**
+- 包名：`com.xingji.travel`
+- 最低 Android：5.0 / API 21
+- 签名：已通过 ZIP 对齐和 v1 / v2 / v3 debug 签名验证
+- SHA-256：见同目录 `.sha256` 文件
+
+该 APK 把 Vue 路线规划 UI、离线候选池、路线卡片、拖拽排序、时间线和地图预览全部打入软件，不依赖 `localhost` 或本地后端。首次安装时，请在 Android 系统中允许对应浏览器/文件管理器“安装未知应用”。
+
+> 这是 debug 签名包，适合安装测试；生产发布和应用商店上架必须使用你自己保存的 release keystore 重签名。
+
+## 轻量 APK 构建路径
+
+最终 APK 使用预编译 Android WebView runtime 打包静态网页资源，不需要在本机安装 Flutter、Gradle 或完整 Android SDK。
+
+配置文件：
+
+```text
+travel-planner/frontend/nitron.config.json
+```
+
+构建前先生成 APK 专用静态资源：
+
+```bash
+cd travel-planner/frontend
+npm ci
+npm run build:apk
+```
+
+然后使用 Node 18+、Java 8+ 和 [Nitron](https://www.npmjs.com/package/nitron) 打包：
+
+```bash
+npx --yes nitron@2.0.2 build
+# 输出 dist/app.apk
+```
+
+当前交付物由该命令构建后复制到 `travel-planner/release/`。`build:apk` 使用 `.env.apk` 的 `VITE_DEMO_MODE=true`，所以 APK 是离线优先的；未来若有已部署的 HTTPS FastAPI 服务，可在专门发布配置中明确设置 `VITE_API_BASE_URL`。
 
 ## Key 的正确边界
 
@@ -12,39 +52,14 @@
 | Key 类型 | 使用位置 | 是否应写入源码 / Vue bundle |
 |---|---|---:|
 | **Web 服务 Key** | FastAPI `AMAP_WEB_SERVICE_KEY`，用于 POI、地理编码、距离矩阵 | **否** |
-| **Android 平台 Key** | 原生 Android AMap SDK 的 `AndroidManifest.xml` | **否**；构建时注入，最终 APK 的 Manifest 含该 Key 属 SDK 正常行为 |
+| **Android 平台 Key** | 原生 Android AMap SDK 的 `AndroidManifest.xml` | **否**；只在原生构建时注入 |
+| **JS API Key** | 浏览器的高德 JS API 2.0 | 只能作为受 Referer 限制的构建变量 |
 
-因此 Web 服务 Key 不会被放入 APK。Android Key 也绝不提交到 Git、`.env` 或 TypeScript 源码，而是由 Gradle 读取 `AMAP_ANDROID_KEY`。
-
-## 已交付 APK：Flutter 壳
-
-根目录已有 GitHub Actions 工作流 `.github/workflows/build_apk.yml`，它会构建当前的 `app/` 目录。该目录已从原入口改为 **行迹智能旅行** APK，并加载：
-
-```text
-app/assets/travel_web/
-```
-
-其中是以 `VITE_DEMO_MODE=true` 构建的相对路径 Vue 静态资源，适配 Android WebView 本地加载。
-
-### 下载步骤
-
-1. GitHub → **Actions** → **Build Android APK**；
-2. 运行或打开当前分支对应的 workflow run；
-3. 下载 artifact `ai-beauty-app-debug`；
-4. 将其中的 `app-debug.apk` 安装到 Android 手机。
-
-虽然历史 artifact 名称仍是 `ai-beauty-app-debug`，APK 内实际应用标题和包名已经是：
-
-```text
-行迹智能旅行
-com.xingji.travel
-```
-
-这是可安装的 arm64 debug APK。首次从浏览器/文件管理器安装时，需要在 Android 系统中允许该来源“安装未知应用”。
+因此，截图里的 Web 服务 Key 不会被放入 APK；Android Key 也不能直接作为 WebView 的 JS Key 使用。这样做会泄露服务端能力或导致高德鉴权失败。
 
 ## 原生高德地图 APK（生产建议）
 
-Capacitor Android 工程位于：
+要在 Android 真机内使用用户提供的 **Android 平台 Key** 和原生高德底图，请使用 Capacitor 原生工程：
 
 ```text
 travel-planner/frontend/android/
@@ -74,15 +89,7 @@ com.xingji.travel
 
 包名或 SHA1 不匹配时，应用仍会保留完整的路线 UI 和离线地图预览，但原生底图会鉴权失败。
 
-仓库还提供了可复制到拥有 workflow 权限仓库的 CI 模板：
-
-```text
-travel-planner/deploy/build-native-amap-apk.yml.example
-```
-
-该模板读取 GitHub Actions Secret `AMAP_ANDROID_KEY`，不会把 Key 写进日志或源码。
-
-### 本地构建命令
+### 原生 AMap 本地构建
 
 要求：Node 22、JDK 17、Android SDK（platform 33+ / build-tools 33.0.2）。
 
@@ -96,7 +103,13 @@ cd android
 # 输出：app/build/outputs/apk/debug/app-debug.apk
 ```
 
-生产环境请使用自己持久保存的 release keystore，并把 release SHA1 加入高德 Android Key 白名单。绝不能提交 keystore 或 Key 到仓库。
+仓库还提供 CI 模板：
+
+```text
+travel-planner/deploy/build-native-amap-apk.yml.example
+```
+
+将其复制到拥有 GitHub Actions workflow 权限的仓库后，配置 Actions Secret `AMAP_ANDROID_KEY`。它不会把 Key 写进日志或源码。
 
 ## 隐私与降级
 
