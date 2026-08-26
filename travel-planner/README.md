@@ -24,11 +24,13 @@ npm install
 npm run dev                       # http://localhost:5173
 ```
 
-在 **Vite 开发模式** 中，未设置 `VITE_API_BASE_URL` 会使用内置演示数据，因此可以独立审阅 UI；生产构建在该变量为空时会请求同源 `/api`（由 Nginx 代理到 FastAPI）。要在本地开发时连接 API：
+复制 `.env.example` 后，`VITE_DEMO_MODE=true` 可使用内置演示数据独立审阅 UI；关闭该开关时，开发服务器与生产构建都会请求相对 `/api`（分别由 Vite / Nginx 反向代理到 FastAPI），浏览器不会请求 `localhost`。要连接 API：
 
 ```bash
 # frontend/.env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_DEMO_MODE=false
+# 通常保持为空，使用同源 /api 代理；跨域部署才填写外部 HTTPS API Origin
+VITE_API_BASE_URL=
 VITE_AMAP_JS_KEY=你的_JS_API_Key
 VITE_AMAP_SECURITY_JS_CODE=你的_安全密钥
 ```

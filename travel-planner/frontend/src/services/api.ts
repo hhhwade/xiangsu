@@ -3,9 +3,9 @@ import { destinationSuggestions } from '../data/sample'
 import type { DestinationSuggestion, PlanResponse, TravelForm } from '../types'
 
 const configuredBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
-// A Vite dev server remains reviewable without a separate API process. Production
-// always calls same-origin /api, which Nginx proxies to FastAPI.
-const standaloneDemo = import.meta.env.DEV && !configuredBase
+// Demo mode is explicit. Otherwise both local Vite and production call same-origin
+// /api; Vite/Nginx proxy that relative URL to FastAPI, never the browser's localhost.
+const standaloneDemo = import.meta.env.VITE_DEMO_MODE === 'true'
 const planEndpoint = `${configuredBase}/api/v1/plans`
 
 function asBackendPayload(form: TravelForm) {

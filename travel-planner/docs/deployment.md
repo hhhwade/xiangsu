@@ -54,7 +54,7 @@ curl -s http://127.0.0.1:8000/openapi.json | head
 ```bash
 cd travel-planner/frontend
 cp .env.example .env
-# 连接本地 API 时：VITE_API_BASE_URL=http://localhost:8000
+# 连接本地 API 时：VITE_DEMO_MODE=false（Vite 会在服务端把相对 /api 代理到 127.0.0.1:8000）
 npm install
 npm run dev -- --host 0.0.0.0
 ```
