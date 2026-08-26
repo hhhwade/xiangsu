@@ -1,0 +1,15 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/*.tsbuildinfo
+
+# Python
+backend/.venv/
+backend/.env
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Operations
+*.log

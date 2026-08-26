@@ -42,3 +42,13 @@ cd ../app && flutter pub get && flutter run   # 设置页填服务器地址+toke
 - 本仓库**不含**可直接安装的二进制包——APK/IPA 由你在打包机执行 §5 产出（iOS 需 macOS+签名）
 - 核心生成能力依赖后端 GPU；无 GPU 自动降级并在结果里如实标注 `mode`
 - 各模型许可与商用风险见模型清单；Civitai 第三方 LoRA 需**逐个核许可**
+
+---
+
+## 新增：行迹智能旅游路线规划软件
+
+独立的 Vue 3 + FastAPI 子工程位于 [`travel-planner/`](travel-planner/)，包含高德地图 JS API 2.0 集成、POI/距离矩阵适配、K-Means + 最近邻 + 2-opt 路径优化、PostGIS 数据库设计、Docker 部署与测试。
+
+- [快速开始与项目说明](travel-planner/README.md)
+- [系统架构与路线算法](travel-planner/docs/architecture.md)
+- [API / 数据库 / 部署文档](travel-planner/docs/)
