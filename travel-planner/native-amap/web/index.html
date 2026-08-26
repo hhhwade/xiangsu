@@ -107,6 +107,7 @@
     .detail-image { position:relative; height:132px; overflow:hidden; background:#dcece2; }
     .detail-image:after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 43%,rgba(14,45,40,.43)); pointer-events:none; }
     .detail-image img { width:100%; height:100%; object-fit:cover; display:block; }
+    .detail-image .no-photo { position:absolute; inset:0; display:none; place-items:center; color:#668177; background:linear-gradient(135deg,#e8f2eb,#f8f6ee); font-size:11px; font-weight:800; }
     .detail-image .image-caption { position:absolute; z-index:1; bottom:10px; left:13px; color:#fff; font-size:10px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.28); }
     .detail-close { position:absolute; z-index:2; top:9px; right:9px; display:grid; width:28px; height:28px; place-items:center; border:0; border-radius:50%; color:#2e514b; background:rgba(255,255,255,.9); font-size:18px; }
     .detail-body { padding:13px 14px 14px; }
@@ -163,7 +164,7 @@
     <section class="spot-modal" id="spotModal" aria-hidden="true">
       <div class="modal-scrim" id="detailScrim"></div>
       <article class="spot-sheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
-        <div class="detail-image"><img id="detailImage" alt="景点图片"><span class="image-caption">景点图片</span></div>
+        <div class="detail-image"><img id="detailImage" alt="景点图片"><div class="no-photo" id="detailNoImage">暂无该景点实拍图</div><span class="image-caption" id="detailImageCaption">景点图片</span></div>
         <button class="detail-close" id="detailClose" aria-label="关闭景点详情">×</button>
         <div class="detail-body">
           <span class="detail-type" id="detailType"></span>

@@ -148,6 +148,16 @@
     '亚龙湾':'三亚代表性海湾，以沙滩、海水和度假景观闻名。'
   };
 
+  /* Only exact or closely corresponding real landmark photographs are mapped here. */
+  var landmarkImages = {
+    '断桥残雪':'images/landmarks/duanqiao.jpg',
+    '平湖秋月':'images/landmarks/pinghu.jpg',
+    '曲院风荷':'images/landmarks/quyuan.jpg',
+    '苏堤春晓':'images/landmarks/sudi.jpg',
+    '灵隐寺':'images/landmarks/lingyin.jpg',
+    '飞来峰':'images/landmarks/feilai.jpg'
+  };
+
   function $(id) { return document.getElementById(id); }
   function normalizeCity(value) { return (value || '').replace(/[\s]/g,'').replace(/市$/,'').replace(/地区$/,'').replace(/特别行政区$/,''); }
   function hash(value) { var h=2166136261; for(var i=0;i<value.length;i++){h^=value.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);} return h>>>0; }
@@ -157,13 +167,21 @@
   function formatTime(total) { total=Math.max(0,total); return ('0'+Math.floor(total/60)).slice(-2)+':'+('0'+(total%60)).slice(-2); }
   function haversine(a,b) { var r=6371,rad=Math.PI/180,dl=(b.lat-a.lat)*rad,dn=(b.lng-a.lng)*rad;var x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dn/2)*Math.sin(dn/2);return 2*r*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
   function notify(text) { var t=$('toast');t.textContent='✓ '+text;t.className='toast show';clearTimeout(notify.timer);notify.timer=setTimeout(function(){t.className='toast';},2400); }
-  function fallbackImage(type) {
-    if(type==='自然风光'||type==='户外运动') return 'images/nature.jpg';
-    if(type==='博物馆') return 'images/museum.jpg';
-    if(type==='美食探店') return 'images/food.jpg';
-    if(type==='宗教寺庙') return 'images/temple.jpg';
-    if(type==='历史人文') return 'images/culture.jpg';
-    return 'images/city.jpg';
+  function exactImageFor(spot) { return spot.imageUrl || landmarkImages[spot.name] || ''; }
+  function setDetailImage(spot) {
+    var image=$('detailImage'), noImage=$('detailNoImage'), caption=$('detailImageCaption'), url=exactImageFor(spot);
+    image.onerror=function(){ image.onerror=null; image.style.display='none'; noImage.style.display='grid'; caption.textContent='暂无该景点实拍图'; };
+    if(url) {
+      noImage.style.display='none';
+      image.style.display='block';
+      image.src=url;
+      caption.textContent=spot.imageUrl?'高德 POI 实景图片':'已核对的景点实拍图';
+    } else {
+      image.removeAttribute('src');
+      image.style.display='none';
+      noImage.style.display='grid';
+      caption.textContent='暂无该景点实拍图';
+    }
   }
   function closeSpotDetail() { $('spotModal').className='spot-modal'; $('spotModal').setAttribute('aria-hidden','true'); detailSpot=null; }
   function openSpotDetail(spot) {
@@ -173,8 +191,7 @@
     $('detailTime').textContent='第 '+((route().spots.indexOf(spot))+1)+' 站 · '+spot.arrive+' 到达 · '+spot.leave+' 离开 · 游览约 '+spot.duration+' 分钟';
     $('detailOverview').textContent=spot.overview||spot.tip||'该景点的概述将在高德 POI 返回后更新。';
     $('detailAddress').innerHTML=spot.address?'<b>地址</b> · '+esc(spot.address):'<b>位置</b> · 可在下方高德地图查看该景点的准确位置。';
-    var image=$('detailImage'); image.onerror=function(){ image.onerror=null; image.src=fallbackImage(spot.type); };
-    image.src=spot.imageUrl||fallbackImage(spot.type);
+    setDetailImage(spot);
     $('spotModal').className='spot-modal show';
     $('spotModal').setAttribute('aria-hidden','false');
   }
@@ -215,7 +232,7 @@
     } else if(source) {
       for(i=0;i<source.length;i++) {
         var item=source[i];
-        pool.push({id:'seed-'+i,name:item[0],type:item[1],lng:item[2],lat:item[3],duration:item[4],overview:spotOverview(city,item[1],item[0]),tip:'建议结合右侧高德地图安排到达时间。'});
+        pool.push({id:'seed-'+i,name:item[0],type:item[1],lng:item[2],lat:item[3],duration:item[4],overview:spotOverview(city,item[1],item[0]),imageUrl:landmarkImages[item[0]]||'',tip:'建议结合右侧高德地图安排到达时间。'});
       }
     }
     var required=Math.max(days*spotsPerDay,pool.length);
