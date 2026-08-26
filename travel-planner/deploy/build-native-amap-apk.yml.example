@@ -1,0 +1,47 @@
+# Copy this file to .github/workflows/build_native_amap_apk.yml in a repository
+# with Actions workflow write permission. Prefer an Actions secret named
+# AMAP_ANDROID_KEY; it must never be committed to the repository.
+name: Build Native AMap APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AMAP_ANDROID_KEY: ${{ secrets.AMAP_ANDROID_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: travel-planner/frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK platform
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-33" "build-tools;33.0.2"
+      - name: Build native AMap APK
+        working-directory: travel-planner/frontend
+        run: |
+          test -n "$AMAP_ANDROID_KEY"
+          npm ci
+          npm run mobile:sync
+          cd android
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xingji-native-amap-apk
+          path: travel-planner/frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">行迹智能旅行</string>
+    <string name="title_activity_main">行迹智能旅行</string>
+    <string name="package_name">com.xingji.travel</string>
+    <string name="custom_url_scheme">com.xingji.travel</string>
+</resources>

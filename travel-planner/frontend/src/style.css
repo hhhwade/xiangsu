@@ -191,11 +191,29 @@ button:disabled { cursor: wait; }
 
 .right-panel { position: relative; min-width: 0; overflow: hidden; background: #e7ece7; }
 .map-canvas { position: absolute; inset: 0; overflow: hidden; background: #edf0e9; }
-.amap-host { position: absolute; z-index: 1; inset: 0; visibility: hidden; }
+.amap-host, .native-amap-host { position: absolute; z-index: 1; inset: 0; visibility: hidden; }
 .using-amap .amap-host { visibility: visible; }
+/* Capacitor's Android plugin mounts a native MapView behind a transparent WebView.
+   The element remains transparent but gives the plugin an exact map rectangle. */
+.using-native-amap .native-amap-host { visibility: visible; background: transparent; }
 .using-amap .fallback-map { display: none; }
 .fallback-map { position: absolute; z-index: 0; inset: 0; overflow: hidden; background-color: #e9eee6; background-image: linear-gradient(30deg, rgba(124,142,126,.08) 1px, transparent 1px), linear-gradient(120deg, rgba(124,142,126,.05) 1px, transparent 1px); background-size: 42px 42px, 58px 58px; }
 .fallback-map:before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 65% 25%, rgba(255,255,255,.38), transparent 36%), radial-gradient(ellipse at 17% 86%, rgba(132,170,139,.12), transparent 42%); }
+/* Preserve the web overlay route, labels and pins on top of Android's native map,
+   but remove the synthetic water/road illustration once the native MapView is ready. */
+.using-native-amap .fallback-map { background: transparent; background-image: none; pointer-events: none; }
+.using-native-amap .map-pin { pointer-events: auto; }
+.using-native-amap .fallback-map:before,
+.using-native-amap .map-water,
+.using-native-amap .map-park,
+.using-native-amap .road,
+.using-native-amap .district-label { display: none; }
+.native-amap-root,
+.native-amap-root body,
+.native-amap-root #app,
+.native-amap-root .planner-app,
+.native-amap-root .right-panel,
+.native-amap-root .map-canvas { background: transparent; }
 .map-water { position: absolute; border: 15px solid rgba(209,225,224,.72); background: rgba(211,229,230,.7); box-shadow: inset 0 0 35px rgba(139,181,187,.13); }
 .water-one { width: 43%; height: 57%; top: 21%; left: 9%; border-radius: 44% 48% 52% 37%; transform: rotate(16deg); }
 .water-two { width: 22%; height: 11%; top: 68%; left: 33%; border-width: 8px; border-radius: 46% 55% 31% 44%; transform: rotate(-10deg); }
@@ -237,9 +255,19 @@ button:disabled { cursor: wait; }
 .transport-legend { color: #85928f; }
 .map-style-button { position: absolute; z-index: 12; right: 24px; bottom: 136px; height: 32px; padding: 0 10px; border: 1px solid rgba(215,224,215,.9); border-radius: 7px; color: #4a6963; background: rgba(255,255,252,.94); box-shadow: 0 4px 14px rgba(38,55,43,.1); font-size: 9px; font-weight: 700; }
 .map-style-button span { margin-right: 4px; font-size: 13px; }
-.map-demo-badge { position: absolute; z-index: 9; right: 24px; top: 75px; padding: 7px 9px; border: 1px solid #ece0cb; border-radius: 6px; color: #9b7550; background: rgba(255,250,241,.92); font-size: 9px; box-shadow: 0 4px 14px rgba(74,62,44,.08); }
+.map-demo-badge, .map-native-badge { position: absolute; z-index: 9; right: 24px; top: 75px; padding: 7px 9px; border-radius: 6px; font-size: 9px; box-shadow: 0 4px 14px rgba(74,62,44,.08); }
+.map-demo-badge { border: 1px solid #ece0cb; color: #9b7550; background: rgba(255,250,241,.92); }
 .map-demo-badge span { margin-right: 4px; color: #d87544; }
 .map-demo-badge em { display: none; font-style: normal; }
+.map-native-badge { border: 1px solid #cee2d5; color: #427568; background: rgba(245,255,248,.93); }
+.map-native-badge span { margin-right: 4px; color: #4f9d7f; }
+.map-native-badge em { margin-left: 4px; color: #8aa59c; font-family: 'DM Mono', monospace; font-size: 7px; font-style: normal; }
+.native-privacy-card { position: absolute; z-index: 30; top: 50%; left: 50%; display: grid; grid-template-columns: 29px 1fr; gap: 8px 10px; width: min(330px, calc(100% - 36px)); padding: 16px; border: 1px solid #c8dcd0; border-radius: 12px; color: #47645e; background: rgba(255,255,252,.98); box-shadow: 0 18px 45px rgba(24,49,40,.22); transform: translate(-50%, -50%); }
+.native-privacy-icon { display: inline-flex; align-items: center; justify-content: center; width: 29px; height: 29px; border-radius: 8px; color: #d26f42; background: #faede5; font-size: 18px; }
+.native-privacy-card b { display: block; color: #2e504b; font-size: 13px; }
+.native-privacy-card p { margin: 5px 0 0; color: #768983; font-size: 10px; line-height: 1.55; }
+.native-privacy-card button { grid-column: 1 / -1; height: 34px; border: 0; border-radius: 7px; color: #fff; background: #397a6b; font-size: 11px; font-weight: 800; }
+.native-privacy-card button:hover { background: #2c6a5c; }
 .map-spot-card { position: absolute; z-index: 13; top: 124px; right: 24px; width: min(250px, calc(100% - 48px)); padding: 15px 15px 13px; border: 1px solid rgba(215,225,216,.98); border-radius: 10px; color: #45605b; background: rgba(255,255,252,.96); box-shadow: 0 12px 30px rgba(29,49,42,.16); animation: cardIn .18s ease-out; }
 .map-spot-card > button { position: absolute; right: 8px; top: 6px; width: 22px; height: 22px; border: 0; border-radius: 50%; color: #82918c; background: transparent; font-size: 16px; }
 .map-spot-type { display: inline-block; padding: 3px 6px; border-radius: 4px; color: #a35e39; background: #fae9e0; font-size: 9px; }

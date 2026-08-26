@@ -13,3 +13,6 @@ backend/.env
 
 # Operations
 *.log
+release/*.apk
+release/*.aab
+release/*.sha256

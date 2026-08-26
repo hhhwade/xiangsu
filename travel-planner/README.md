@@ -87,6 +87,7 @@ travel-planner/
 - [数据库设计（PostGIS）](docs/database.sql)
 - [API 设计](docs/api.md)
 - [部署方案](docs/deployment.md)
+- [Android APK 打包与高德 Key 绑定](docs/mobile-apk.md)
 
 ## 产品约束落实表
 

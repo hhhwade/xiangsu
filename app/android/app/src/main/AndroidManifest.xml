@@ -1,18 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Bundled planning UI works offline; this permission is for optional map tiles,
+         web fonts, and future HTTPS API endpoints. -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Android 13+ 相册写权限（gal 插件需要）；老系统 gal 内部已处理 legacy 权限 -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29"/>
-    <!-- 相机仅委托系统相机 App，无需 CAMERA 权限 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
-        android:label="AI美颜修图"
+        android:label="行迹智能旅行"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true"> <!-- 开发期允许 http；生产建议上 https 后删掉 -->
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

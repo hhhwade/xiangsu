@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Capacitor } from '@capacitor/core'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { DayRoute, PlanResponse, RouteSpot, TransportMode } from '../types'
 
@@ -16,13 +17,19 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [spot: RouteSpot] }>()
 
 const mapElement = ref<HTMLDivElement>()
+const nativeMapElement = ref<HTMLDivElement>()
 const amapReady = ref(false)
+const nativeAmapReady = ref(false)
+const nativeConsentPending = ref(false)
 const showAllDays = ref(false)
 const showDetails = ref(false)
 let map: any
+let nativeMap: any
 let infoWindow: any
 let loadPromise: Promise<boolean> | undefined
 let renderToken = 0
+
+const isNativeAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
 
 const visibleRoutes = computed(() => {
   if (!props.plan) return []
@@ -72,6 +79,80 @@ function escapeHtml(value: string) {
 
 function spotPopup(spot: RouteSpot) {
   return `<div class="amap-popup"><span>${escapeHtml(spot.type)}</span><h3>${escapeHtml(spot.name)}</h3><p>游览约 ${spot.estimatedDuration} 分钟 · ${escapeHtml(spot.arrivalTime)} 到达</p><small>${escapeHtml(spot.tips)}</small></div>`
+}
+
+function hasAcceptedNativePrivacy() {
+  return window.localStorage.getItem('xingji-amap-privacy-v1') === 'accepted'
+}
+
+function setNativeTransparentSurface(enabled: boolean) {
+  const targets = [document.documentElement, document.body]
+  targets.forEach((target) => target.classList.toggle('native-amap-root', enabled))
+}
+
+async function initialiseNativeAmap(): Promise<boolean> {
+  if (!isNativeAndroid || !nativeMapElement.value) return false
+  if (!hasAcceptedNativePrivacy()) {
+    nativeConsentPending.value = true
+    return false
+  }
+
+  try {
+    setNativeTransparentSurface(true)
+    const { AMap, LogoPosition, MapType } = await import('@snewbie/capacitor-amap')
+    // AMap Android SDK requires an explicit privacy disclosure/consent acknowledgement
+    // before a MapView is constructed. The UI below records that acknowledgement.
+    await AMap.updatePrivacyShow(true, true)
+    await AMap.updatePrivacyAgree(true)
+    nativeMap = await AMap.create({
+      id: 'xingji-route-map',
+      element: nativeMapElement.value,
+      forceCreate: true,
+      config: {
+        logoPosition: LogoPosition.LOGO_POSITION_BOTTOM_LEFT,
+        mapType: MapType.MAP_TYPE_NORMAL,
+        scaleControlsEnabled: true,
+        zoomControlsEnabled: true,
+        compassEnabled: false,
+        cameraOptions: {
+          target: { latitude: 30.245, longitude: 120.145 },
+          zoom: 13,
+          tilt: 0,
+          bearing: 0,
+        },
+      },
+    })
+    await nativeMap.setTrafficEnabled(props.transportMode === 'driving')
+    nativeAmapReady.value = true
+    nativeConsentPending.value = false
+    return true
+  } catch {
+    // Keep the complete offline map preview available if a device lacks the SDK,
+    // the key is not yet bound to this package/SHA1, or network tiles are unavailable.
+    nativeAmapReady.value = false
+    setNativeTransparentSurface(false)
+    return false
+  }
+}
+
+async function acceptNativePrivacy() {
+  window.localStorage.setItem('xingji-amap-privacy-v1', 'accepted')
+  nativeConsentPending.value = false
+  await initialiseNativeAmap()
+}
+
+async function focusNativeSpot(spot: RouteSpot) {
+  if (!nativeAmapReady.value || !nativeMap) return
+  try {
+    await nativeMap.cameraUpdatePosition({
+      target: { latitude: spot.location.lat, longitude: spot.location.lng },
+      zoom: 15,
+      tilt: 0,
+      bearing: 0,
+    })
+  } catch {
+    // A map camera failure must never block selection in the route list.
+  }
 }
 
 async function loadAmap(): Promise<boolean> {
@@ -211,6 +292,9 @@ function drawAmap() {
 }
 
 async function initialiseMap() {
+  const nativeReady = await initialiseNativeAmap()
+  if (nativeReady || (isNativeAndroid && nativeConsentPending.value)) return
+
   const canUseAmap = await loadAmap()
   if (!canUseAmap || !mapElement.value) return
   const AMap = (window as AmapWindow).AMap
@@ -235,22 +319,31 @@ function selectFallbackSpot(spot: RouteSpot) {
 
 watch([visibleRoutes, () => props.selectedSpot?.id], () => {
   if (amapReady.value) drawAmap()
+  if (props.selectedSpot) void focusNativeSpot(props.selectedSpot)
 }, { deep: true })
 
 watch(showAllDays, () => {
   if (amapReady.value) drawAmap()
 })
 
+watch(() => props.transportMode, (mode) => {
+  if (nativeAmapReady.value && nativeMap) void nativeMap.setTrafficEnabled(mode === 'driving')
+})
+
 onMounted(initialiseMap)
 onBeforeUnmount(() => {
   map?.destroy?.()
+  nativeMap?.destroy?.()
   map = undefined
+  nativeMap = undefined
+  setNativeTransparentSurface(false)
 })
 </script>
 
 <template>
-  <section class="map-canvas" :class="{ 'using-amap': amapReady }">
+  <section class="map-canvas" :class="{ 'using-amap': amapReady, 'using-native-amap': nativeAmapReady }">
     <div ref="mapElement" class="amap-host" aria-label="高德地图路线"></div>
+    <div ref="nativeMapElement" class="native-amap-host" aria-label="高德 Android 原生地图"></div>
 
     <div v-if="!amapReady" class="fallback-map" aria-label="路线地图预览">
       <div class="map-water water-one"></div>
@@ -318,7 +411,7 @@ onBeforeUnmount(() => {
 
     <button class="map-style-button" type="button" @click="showDetails = !showDetails"><span>⊕</span>{{ showDetails ? '收起详情' : '路线详情' }}</button>
 
-    <aside v-if="selectedSpot && (showDetails || !amapReady)" class="map-spot-card">
+    <aside v-if="selectedSpot && (showDetails || (!amapReady && !nativeAmapReady))" class="map-spot-card">
       <button type="button" aria-label="关闭详情" @click="showDetails = false">×</button>
       <span class="map-spot-type">{{ selectedSpot.type }}</span>
       <h3>{{ selectedSpot.name }}</h3>
@@ -327,6 +420,16 @@ onBeforeUnmount(() => {
       <div><span>营业时间</span><b>{{ selectedSpot.openHours || '以现场为准' }}</b></div>
     </aside>
 
-    <div v-if="!amapReady" class="map-demo-badge"><span>⌁</span> 地图预览模式 <em>配置高德 Key 后切换为实时底图</em></div>
+    <div v-if="nativeAmapReady" class="map-native-badge"><span>◆</span> 原生高德地图 <em>Android SDK</em></div>
+    <div v-else-if="!amapReady" class="map-demo-badge"><span>⌁</span> 地图预览模式 <em>配置高德 Key 后切换为实时底图</em></div>
+
+    <aside v-if="nativeConsentPending" class="native-privacy-card">
+      <span class="native-privacy-icon">⌖</span>
+      <div>
+        <b>开启原生高德地图</b>
+        <p>继续即表示你已阅读并同意高德开放平台隐私政策，用于加载地图底图与路线点位。</p>
+      </div>
+      <button type="button" @click="acceptNativePrivacy">同意并开启</button>
+    </aside>
   </section>
 </template>
