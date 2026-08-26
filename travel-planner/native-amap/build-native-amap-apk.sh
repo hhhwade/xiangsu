@@ -59,13 +59,13 @@ cat > "$OUT_DIR/apk/res/values/styles.xml" <<'EOF'
 EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10006" android:versionName="1.0.6">
- <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10007" android:versionName="1.0.7">
+ <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
  <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
- <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme" android:hardwareAccelerated="true" android:usesCleartextTraffic="true">
+ <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme" android:hardwareAccelerated="true" android:usesCleartextTraffic="false">
   <meta-data android:name="com.amap.api.v2.apikey" android:value="${AMAP_ANDROID_KEY}" />
   <activity android:name="com.xingji.travel.MainActivity" android:exported="true" android:screenOrientation="portrait" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|uiMode">
    <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
@@ -91,6 +91,15 @@ rm -rf "$OUT_DIR/apk/META-INF"
   zip -qr -0 "$OUT_DIR/unsigned.apk" . -x 'META-INF/*'
 )
 mkdir -p "$OUT_DIR/signed"
-"$JAVA_BIN" -jar "$APK_SIGNER_JAR" --apks "$OUT_DIR/unsigned.apk" --out "$OUT_DIR/signed" --allowResign >/dev/null
+SIGN_ARGS=(--apks "$OUT_DIR/unsigned.apk" --out "$OUT_DIR/signed" --allowResign)
+# Release signing is opt-in. CI/local callers pass these values from a secret store;
+# debug signing remains available only for developer preview builds.
+if [[ -n "${NATIVE_AMAP_KEYSTORE:-}" ]]; then
+  : "${NATIVE_AMAP_KEY_ALIAS:?Set the release keystore alias}"
+  : "${NATIVE_AMAP_STORE_PASSWORD:?Set the release keystore password}"
+  : "${NATIVE_AMAP_KEY_PASSWORD:?Set the release key password}"
+  SIGN_ARGS+=(--ks "$NATIVE_AMAP_KEYSTORE" --ksAlias "$NATIVE_AMAP_KEY_ALIAS" --ksPass "$NATIVE_AMAP_STORE_PASSWORD" --ksKeyPass "$NATIVE_AMAP_KEY_PASSWORD")
+fi
+"$JAVA_BIN" -jar "$APK_SIGNER_JAR" "${SIGN_ARGS[@]}" >/dev/null
 cp "$(find "$OUT_DIR/signed" -type f -name '*.apk' | head -1)" "$OUTPUT_APK"
 echo "Built native AMap APK: $OUTPUT_APK"

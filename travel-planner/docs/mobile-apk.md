@@ -1,52 +1,78 @@
-# Android APK 打包与高德 Key 说明
+# Android 安装包、签名与高德 Key 说明
 
-## 已生成：原生高德地图 APK v1.0.6
+## 已生成：Release 签名 APK v1.0.7
 
 下载文件：
 
 ```text
-travel-planner/release/xingji-smart-travel-amap-v1.0.6-debug.apk
+travel-planner/release/xingji-smart-travel-amap-v1.0.7-release.apk
 ```
 
-- 应用名：**行迹智能旅行**
-- 包名：`com.xingji.travel`
-- 最低 Android：5.0 / API 21
-- SHA-256：`4b73d7e6b89d2968c13695f3d90a03112de1988dd74a93b7f302144173f8b14c`
-- 已验证：ZIP 对齐和 v1 / v2 / v3 debug 签名。
-
-## v1.0.6 交互规格
-
-| 用户需求 | 实现 |
+| 项 | 值 |
 |---|---|
-| 竖屏可滑动 | `MainActivity` 改为上 56% 路线面板 + 下 44% 原生 AMap `MapView`；路线区域独立滚动。 |
-| 全国城市 | 输入框内置全国城市中心建议；热门城市有真实景点种子池，其余城市按城市中心、偏好与区域生成离线扩展路线。部署 FastAPI + AMap Web 服务后可替换为实时 POI。 |
-| 任意天数 | 支持 1–30 天；日数改变后动态生成 Day Tab，每天依据每日时长分配 3–5 个景点。 |
-| 交通方式影响路线 | 步行、骑行、自驾、公交会使用不同道路系数、速度、候选排序和等待时间，重算景点顺序、路线距离、交通时长；高德地图的线宽/虚线样式也会同步区分。 |
+| 应用名 | 行迹智能旅行 |
+| 包名 | `com.xingji.travel` |
+| 最低 Android | API 21 / Android 5.0 |
+| target SDK | API 34 |
+| APK SHA-256 | `a1af07cbe49a31af73cdb2181e92996a681b77457a0de9aff863492ae62c22c5` |
+| 签名 | RSA-3072 Release 签名，v1 / v2 / v3 已验证 |
 
-路线面板通过 `XingjiNativeMap` JavaScript bridge 将当前日路线、交通方式、Marker 坐标与日期颜色发送给原生 Android 层。原生层在应用内绘制高德 Marker 和 Polyline，不会跳转外部高德 App。每个 Marker 会渲染与上方经典路线一致的圆形编号：路线第 1 站对应地图编号 1，依此类推。
+此版本不再使用 `Android Debug` 证书，关闭明文 HTTP，并将 target SDK 升级到 34，以减少侧载时因 debug 签名和过低 target SDK 触发的风险提示。
 
-## 高德 Key 绑定
+## 安装前必做
 
-Android Key 必须配置：
+### 1. 卸载旧 Debug 包
+
+此前的 `v1.0.6-debug.apk` 签名与 Release 包不同。Android 不允许不同签名覆盖升级：
+
+```text
+设置 → 应用 → 行迹智能旅行 → 卸载
+```
+
+然后再安装 v1.0.7 Release 包。
+
+### 2. 更新高德 Android Key 的发布 SHA1
+
+在高德控制台的 Android Key 配置中，填写：
 
 ```text
 PackageName: com.xingji.travel
-调试版 SHA1: 5D:08:26:4B:44:E0:E5:3F:BC:CC:70:B4:F0:16:47:4C:C6:C5:AB:5C
+发布版安全码 SHA1: 88:A8:50:03:77:C8:86:35:A0:9D:1F:CF:D7:54:0E:AE:12:58:2E:00
 ```
 
-- **Web 服务 Key**：只属于 FastAPI `AMAP_WEB_SERVICE_KEY`，不能写入 APK；
-- **Android 平台 Key**：仅在构建时写入最终 APK 的 AndroidManifest；
-- **JS API Key**：只用于浏览器版高德 JS API，不能替代 Android Key。
+没有绑定这个 Release SHA1 时，APK 仍可安装，但应用内高德地图会提示鉴权异常。
 
-包名或 SHA1 不匹配时，APK 可以安装，但原生高德底图会显示鉴权错误。
+## 关于“高风险应用 / 未查询到 ICP”
+
+截图中的提示包含两类完全不同的问题：
+
+1. **Debug/未知签名与旧 target SDK**：v1.0.7 已通过 Release 签名和 target SDK 34 修复；
+2. **未查询到 ICP 备案信息**：这是部分中国 Android 厂商对未上架、侧载应用的分发信任提示，不能通过篡改 APK 或关闭系统防护来合法消除。
+
+要获得厂商侧的低风险/可信分发状态，需要：
+
+- 使用固定的 release keystore 持续签名；
+- 视分发地区与业务情况完成 ICP 备案；
+- 提交到应用宝、华为、小米、OPPO、vivo 等官方应用市场或厂商安全检测渠道；
+- 使用与上架包一致的包名、证书和隐私政策。
+
+不要为了绕过系统安全提示而关闭设备保护或安装来源不明的替换包。
+
+## 产品能力
+
+| 用户需求 | v1.0.7 实现 |
+|---|---|
+| 手机布局 | 竖屏，上方可滚动路线面板，下方固定高德地图 |
+| 城市 | 全国城市中心建议；热门城市景点种子池；其余城市离线扩展路线；部署 API 后可切换实时高德 POI |
+| 停留天数 | 1–30 天，动态 Day Tab |
+| 交通方式 | 步行、骑行、自驾、公交重算顺序、距离、时间、地图线条样式 |
+| 编号同步 | 路线第 N 站与高德地图编号 N Marker 一一对应 |
 
 ## 关键源文件
 
 ```text
-travel-planner/native-amap/MainActivity.java          # 竖屏原生 MapView、Marker/Polyline
-travel-planner/native-amap/web/index.html             # Android WebView 兼容路线面板
-travel-planner/native-amap/web/route-panel.js         # 全国城市、任意天数、交通方式重算
-travel-planner/native-amap/build-native-amap-apk.sh   # 不含 Key 的受控构建脚本
+travel-planner/native-amap/MainActivity.java          # MapView、Marker/Polyline、桥接
+travel-planner/native-amap/web/index.html             # 手机端卡片 UI
+travel-planner/native-amap/web/route-panel.js         # 城市、天数、交通方式重算
+travel-planner/native-amap/build-native-amap-apk.sh   # Key/证书均通过环境变量注入
 ```
-
-首次安装时，请在 Android 系统中允许对应文件管理器/浏览器“安装未知应用”。这是 debug 签名包；正式发布请使用 release keystore 重签名，并将新的 SHA1 填入高德控制台。
