@@ -41,7 +41,7 @@
     '长沙':[112.9388,28.2282],'张家界':[110.4792,29.1171],'岳阳':[113.1290,29.3571],'衡阳':[112.5719,26.8932],'湘潭':[112.9441,27.8297],
     '广州':[113.2644,23.1291],'深圳':[114.0579,22.5431],'珠海':[113.5767,22.2707],'佛山':[113.1214,23.0215],'东莞':[113.7518,23.0207],'中山':[113.3926,22.5176],'汕头':[116.6819,23.3542],'惠州':[114.4168,23.1115],'湛江':[110.3594,21.2707],'江门':[113.0815,22.5787],
     '南宁':[108.3665,22.8170],'桂林':[110.2900,25.2736],'北海':[109.1193,21.4733],'柳州':[109.4281,24.3264],
-    '海口':[110.1983,20.0440],'三亚':[109.5119,18.2528],
+    '海口':[110.1983,20.0440],'三亚':[109.5119,18.2528],'三沙':[112.3380,16.8310],
     '成都':[104.0665,30.5728],'绵阳':[104.6796,31.4675],'乐山':[103.7654,29.5522],'宜宾':[104.6437,28.7513],'南充':[106.1107,30.8378],'泸州':[105.4433,28.8891],
     '贵阳':[106.6302,26.6470],'遵义':[106.9274,27.7257],'安顺':[105.9476,26.2531],'毕节':[105.2850,27.3017],
     '昆明':[102.8329,24.8801],'大理':[100.2676,25.6065],'丽江':[100.2278,26.8550],'西双版纳':[100.7970,22.0017],'曲靖':[103.7979,25.5016],
@@ -51,6 +51,16 @@
     '西宁':[101.7782,36.6171],'银川':[106.2309,38.4872],'乌鲁木齐':[87.6168,43.8256],'喀什':[75.9898,39.4704],'伊宁':[81.3241,43.9168],'克拉玛依':[84.8739,45.5959],
     '香港':[114.1694,22.3193],'澳门':[113.5439,22.1987],'台北':[121.5654,25.0330],'高雄':[120.3014,22.6273]
   };
+
+  // Merge the complete 369-city centre list before using compact hand-tuned
+  // centres for the most visited destinations below.
+  if (window.XingjiNationalCities) {
+    for (var nationalCity in window.XingjiNationalCities) {
+      if (window.XingjiNationalCities.hasOwnProperty(nationalCity) && !cityCenters[nationalCity]) {
+        cityCenters[nationalCity] = window.XingjiNationalCities[nationalCity];
+      }
+    }
+  }
 
   var cityCatalogs = {
     '杭州':[
@@ -163,10 +173,27 @@
   function hash(value) { var h=2166136261; for(var i=0;i<value.length;i++){h^=value.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);} return h>>>0; }
   function fallbackCenter(city) { var h=hash(city); return [80+(h%4700)/100,20+((h/97|0)%2700)/100]; }
   function getCenter(city) { return cityCenters[normalizeCity(city)] || fallbackCenter(city); }
+  function poiCacheKey(cityKey) { return 'xingji-amap-poi-v1:' + cityKey; }
+  function restoreCachedPois(cityKey) {
+    if (nativePoiCache[cityKey]) return nativePoiCache[cityKey];
+    try {
+      var record = JSON.parse(window.localStorage.getItem(poiCacheKey(cityKey)) || 'null');
+      if (record && Array.isArray(record.pois) && record.pois.length && Date.now() - record.savedAt < 30 * 24 * 60 * 60 * 1000) {
+        nativePoiCache[cityKey] = record.pois;
+        return record.pois;
+      }
+    } catch (e) {}
+    return null;
+  }
+  function storeCachedPois(cityKey, pois) {
+    nativePoiCache[cityKey] = pois;
+    try { window.localStorage.setItem(poiCacheKey(cityKey), JSON.stringify({savedAt:Date.now(), pois:pois})); } catch (e) {}
+  }
   function route() { for(var i=0;i<routes.length;i++)if(routes[i].day===activeDay)return routes[i]; return routes[0]; }
   function formatTime(total) { total=Math.max(0,total); return ('0'+Math.floor(total/60)).slice(-2)+':'+('0'+(total%60)).slice(-2); }
   function haversine(a,b) { var r=6371,rad=Math.PI/180,dl=(b.lat-a.lat)*rad,dn=(b.lng-a.lng)*rad;var x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dn/2)*Math.sin(dn/2);return 2*r*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
   function notify(text) { var t=$('toast');t.textContent='✓ '+text;t.className='toast show';clearTimeout(notify.timer);notify.timer=setTimeout(function(){t.className='toast';},2400); }
+  function setPoiStatus(text) { var el=$('poiStatus'); if(el) el.textContent=text; }
   function exactImageFor(spot) { return spot.imageUrl || landmarkImages[spot.name] || ''; }
   function setDetailImage(spot) {
     var image=$('detailImage'), noImage=$('detailNoImage'), caption=$('detailImageCaption'), url=exactImageFor(spot);
@@ -223,7 +250,7 @@
     return result;
   }
   function makePool(city, days, spotsPerDay) {
-    var cityKey=normalizeCity(city), center=getCenter(city), source=cityCatalogs[cityKey], nativePois=nativePoiCache[cityKey], pool=[], i;
+    var cityKey=normalizeCity(city), center=getCenter(city), source=cityCatalogs[cityKey], nativePois=restoreCachedPois(cityKey), pool=[], i;
     if(nativePois && nativePois.length) {
       for(i=0;i<nativePois.length;i++) {
         var poi=nativePois[i];
@@ -278,24 +305,33 @@
   function requestNativePois(city) {
     try {
       if(window.XingjiNativeMap && window.XingjiNativeMap.searchPois) {
+        setPoiStatus('正在查询高德真实景点');
+        // Multiple terms avoid sparse results from a single category in small cities.
         window.XingjiNativeMap.searchPois(city, '旅游景点|博物馆|美食');
+      } else {
+        setPoiStatus('离线城市数据');
       }
-    } catch(e) {}
+    } catch(e) { setPoiStatus('离线城市数据'); }
   }
   window.XingjiNativePoiResult = function(raw) {
     try {
       var payload=typeof raw==='string'?JSON.parse(raw):raw;
-      if(!payload || payload.code!==1000 || !payload.pois || !payload.pois.length) return;
+      if(!payload) return;
+      if(payload.code!==1000 || !payload.pois || !payload.pois.length) {
+        setPoiStatus('高德 POI 暂不可用 · 已使用离线数据');
+        return;
+      }
       var key=normalizeCity(payload.city), current=normalizeCity($('destination').value);
-      nativePoiCache[key]=payload.pois;
+      storeCachedPois(key, payload.pois);
       if(key!==current) return;
       var days=Math.max(1,Math.min(30,parseInt($('duration').value,10)||1)), hours=Math.max(2,Math.min(16,parseInt($('hours').value,10)||8));
       routes=buildRoutes(payload.city,days,hours,selectedMode);
       activeDay=Math.min(activeDay,routes.length);
       selectedId='';
       renderAll();
+      setPoiStatus('高德实时 POI · '+payload.pois.length+' 个景点');
       notify('已更新为高德实时 POI，地图坐标与景点描述已校准');
-    } catch(e) {}
+    } catch(e) { setPoiStatus('离线城市数据'); }
   };
   function publish() {
     var r=route(); if(!r)return;
