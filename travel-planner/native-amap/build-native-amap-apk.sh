@@ -37,7 +37,7 @@ command -v unzip >/dev/null
 test -f "$WEB_DIR/index.html"
 
 rm -rf "$OUT_DIR"
-mkdir -p "$OUT_DIR/classes" "$OUT_DIR/apk/res/values" "$OUT_DIR/apk/assets/www" \
+mkdir -p "$OUT_DIR/classes" "$OUT_DIR/apk/res/values" "$OUT_DIR/apk/res/xml" "$OUT_DIR/apk/assets/www" \
   "$OUT_DIR/apk/lib/arm64-v8a" "$OUT_DIR/apk/lib/armeabi-v7a"
 
 "$JAVAC_BIN" -encoding UTF-8 -source 8 -target 8 \
@@ -58,15 +58,26 @@ EOF
 cat > "$OUT_DIR/apk/res/values/styles.xml" <<'EOF'
 <resources><style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:colorAccent">#D46F3F</item></style></resources>
 EOF
+# The legacy AMap Search SDK may still reach the documented AMap REST hosts over
+# HTTP. Keep the exception tightly scoped instead of enabling cleartext globally.
+cat > "$OUT_DIR/apk/res/xml/network_security_config.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">amap.com</domain>
+    <domain includeSubdomains="true">autonavi.com</domain>
+  </domain-config>
+</network-security-config>
+EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10202" android:versionName="1.2.2">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10203" android:versionName="1.2.3">
  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
  <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
- <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme" android:hardwareAccelerated="true" android:usesCleartextTraffic="false">
+ <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme" android:hardwareAccelerated="true" android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config">
   <meta-data android:name="com.amap.api.v2.apikey" android:value="${AMAP_ANDROID_KEY}" />
   <activity android:name="com.xingji.travel.MainActivity" android:exported="true" android:screenOrientation="portrait" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|uiMode">
    <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>

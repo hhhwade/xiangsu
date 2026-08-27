@@ -1,11 +1,11 @@
 # Android 安装包、高德 POI 与签名说明
 
-## 已生成：Release 签名 APK v1.2.2
+## 已生成：Release 签名 APK v1.2.3
 
 下载文件：
 
 ```text
-travel-planner/release/xingji-smart-travel-amap-v1.2.2-release.apk
+travel-planner/release/xingji-smart-travel-amap-v1.2.3-release.apk
 ```
 
 | 项 | 值 |
@@ -14,12 +14,12 @@ travel-planner/release/xingji-smart-travel-amap-v1.2.2-release.apk
 | 包名 | `com.xingji.travel` |
 | 最低 Android | API 21 / Android 5.0 |
 | target SDK | API 34 |
-| APK SHA-256 | `ee0b7a4186c8991b6a2c9e0ff5fc3578f9a70b8ed23f6282f6c8845e29b6e1a2` |
+| APK SHA-256 | `39244b904fae146d25e6afc3235aea92e1dfb51b39158977a37ea00aafa2a7b3` |
 | 签名 | RSA-3072 Release 签名，v1 / v2 / v3 已验证 |
 
 ## 景点坐标、概述与实拍图片
 
-v1.2.2 将地点来源拆成两层：
+v1.2.3 将地点来源拆成两层：
 
 1. **高德 POI 实时层（优先）**：用户重新生成路线时，原生 Android 通过 AMap Search SDK 以城市和偏好查询真实 POI。返回的景点名称、类型和 GCJ-02 坐标同时进入路线卡片与原生 MapView；地址只作为地址提示保留；
 2. **景点概述层**：经典路线使用编辑式景点概括；高德实时 POI 使用“它是什么、在城市中扮演什么角色、为什么值得游览”的概括，避免把地址摘要当作景点介绍；
@@ -57,7 +57,7 @@ Debug 包与 Release 包签名不同，Android 不允许覆盖升级：
 
 ```text
 PackageName: com.xingji.travel
-发布版安全码 SHA1: B8:B7:50:9D:26:49:AF:84:02:E1:80:21:17:4C:B6:7D:AF:F8:BB:7D
+发布版安全码 SHA1: F6:D0:77:4F:D2:A6:C7:BC:F7:EC:70:A2:56:1E:5E:5E:28:AF:10:80
 ```
 
 并确保该 Key 允许 Android 地图/搜索服务。未绑定 Release SHA1 时，APK 可以安装，但高德地图或 POI 查询会鉴权失败。
@@ -71,7 +71,7 @@ PackageName: com.xingji.travel
 
 ## 手机产品能力
 
-| 用户需求 | v1.2.2 实现 |
+| 用户需求 | v1.2.3 实现 |
 |---|---|
 | 手机布局 | 竖屏，上方可滚动路线面板，下方固定高德地图 |
 | 城市 | 高德 Search SDK 实时 POI 优先；全国城市中心建议和离线扩展兜底 |

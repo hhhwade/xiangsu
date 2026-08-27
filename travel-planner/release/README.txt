@@ -1,19 +1,22 @@
-行迹智能旅行 v1.2.2 — 全国城市真实 POI 覆盖 Release 包
+行迹智能旅行 v1.2.3 — 全国城市真实路线增强 Release 包
 
-文件：xingji-smart-travel-amap-v1.2.2-release.apk
+文件：xingji-smart-travel-amap-v1.2.3-release.apk
 包名：com.xingji.travel
 最低 Android：5.0（API 21）
 目标 Android API：34
-APK SHA-256：ee0b7a4186c8991b6a2c9e0ff5fc3578f9a70b8ed23f6282f6c8845e29b6e1a2
+APK SHA-256：39244b904fae146d25e6afc3235aea92e1dfb51b39158977a37ea00aafa2a7b3
 
-v1.2.2 全国覆盖升级：
-- 内置 369 个中国城市/地区中心，覆盖全国地级市、直辖市、自治州及港澳台主要城市；
-- 每次生成路线并行查询“旅游景点 / 博物馆 / 美食”三类高德真实 POI；
-- 以 POI ID 合并去重，使用同一份真实名称、GCJ-02 坐标、地址、图片和概述生成路线/地图；
-- 成功 POI 结果缓存 30 天，下一次同城市可直接使用；
-- 界面会明确显示当前是“高德实时 POI”还是“离线城市数据”，避免错误地把兜底数据说成真实景点。
+v1.2.3 解决“九江等城市只有泛化名称”问题：
+- 369 城市中心表覆盖全国目的地识别；
+- 高德 POI 搜索并行查询旅游景点、博物馆、美食，得到真实景点名称和坐标；
+- 对旧版 Android 高德 Search SDK 仅放行 amap.com/autonavi.com 域名的必要网络请求，不开放全局明文流量；
+- 启动地图使用 HTTPS；
+- 九江增加浔阳楼、锁江楼、琵琶亭、烟水亭、庐山、白鹿洞书院、东林寺等真实离线兜底景点；
+- 查询失败时页面明确显示离线状态，避免用“城市博物馆/慢游点”等泛化名称伪装真实 POI。
 
-高德 Android Key 的“发布版安全码 SHA1”必须包含：
-B8:B7:50:9D:26:49:AF:84:02:E1:80:21:17:4C:B6:7D:AF:F8:BB:7D
+重要安装和高德配置：
+1. 本包使用新的 Release 签名；请先卸载此前的 Release/Debug 包后安装；
+2. 在高德 Android Key 的“发布版安全码 SHA1”添加：
+   F6:D0:77:4F:D2:A6:C7:BC:F7:EC:70:A2:56:1E:5E:5E:28:AF:10:80
 
 已进行 ZIP 对齐与 v1/v2/v3 Release 签名校验。

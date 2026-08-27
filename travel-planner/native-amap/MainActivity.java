@@ -61,6 +61,7 @@ public final class MainActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         try {
+            MapsInitializer.setProtocol(MapsInitializer.HTTPS);
             MapsInitializer.initialize(getApplicationContext());
         } catch (Exception ignored) {
             // The SDK will surface an auth/network state in the map view when available.
