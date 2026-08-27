@@ -1,44 +1,38 @@
-# AI 美颜修图 — 完整可打包工程
+# 行迹｜智能旅游路线规划软件
 
-一体机交付：**Flutter 双端 APP + FastAPI GPU 推理后端 + 打包脚本 + 部署文档**。
+一套面向自由行用户的智能行程规划产品：输入目的地、停留时间、景点偏好和出行方式，自动生成按天拆分、区域集中、**无回头路 / 无交叉 / 不超时**的旅行路线。
 
-- 🎨 **Q 版像素风**：任意图（人像/宠物/风景）→ 大眼圆脸像素可爱风；参数可调颗粒度/强度/保背景
-- 💅 **AI 美颜 P 图**：美白·磨皮·美发·补发·瘦脸·瘦身·瘦腿·大眼·唇眉，勾选组合 + 强度滑块
-- 🖼 前后对比拖动滑块、历史记录、保存相册、系统分享
-- ⚙️ SD+LoRA（GPU 精处理）与 AnimeGAN（轻量）**双模式自动切换**；纯 CV 美颜功能无 GPU 也能用
+本仓库当前交付包含：
 
-## 目录速览
+- **Web 规划器**：Vue 3 + TypeScript + 高德 JS API 2.0 适配，位于 [`travel-planner/frontend`](travel-planner/frontend)。
+- **FastAPI 路线服务**：高德 POI/距离矩阵适配、K-Means、最近邻、2-opt、营业时间和 Buffer 校验，位于 [`travel-planner/backend`](travel-planner/backend)。
+- **Android APK 壳**：Flutter WebView 打包的离线优先行程软件，位于 [`app`](app)，由根目录 GitHub Actions 的 **Build Android APK** 工作流构建。
+- **原生高德 Android 路径**：Capacitor + Android AMap SDK bridge，位于 [`travel-planner/frontend/android`](travel-planner/frontend/android)，Key 仅在 Gradle 构建时注入。
 
-| 目录 | 内容 |
+## 快速入口
+
+| 目标 | 文档 / 目录 |
 |---|---|
-| `server/` | 后端推理服务（FastAPI + Celery + MinIO + diffusers/MediaPipe 管线） |
-| `app/` | Flutter 移动端（Android/iOS 一套代码） |
-| `deploy/` | docker-compose + nginx + `.env.example` 一键部署 |
-| `scripts/` | `download_models.sh` / `build_android.sh` / `build_ios.sh` |
-| `training/` | 「学习P图师」微调接入指引（本期未启用训练模块） |
-| `docs/01-技术方案与模型清单.md` | 架构、API、模型权限清单 |
-| `docs/部署与打包手册.md` | **从 0 到装上手机的全流程** |
-| `otherModels.txt` | 模型清单速查 + 许可红线 |
+| Web 与 API 快速开始 | [travel-planner/README.md](travel-planner/README.md) |
+| 系统架构、算法、数据流 | [architecture.md](travel-planner/docs/architecture.md) |
+| API 契约 | [api.md](travel-planner/docs/api.md) |
+| PostGIS 数据库设计 | [database.sql](travel-planner/docs/database.sql) |
+| Docker / Nginx 部署 | [deployment.md](travel-planner/docs/deployment.md) |
+| **APK 打包与高德 Key 边界** | [mobile-apk.md](travel-planner/docs/mobile-apk.md) |
 
-## 最快的 3 步
+## 验证
 
 ```bash
-# 1) 后端（GPU 服务器，无 GPU 自动降级 mock/lite）
-cd deploy && cp .env.example .env   # 改 API_TOKEN/S3_SECRET_KEY
-docker compose up -d --build
-
-# 2) 模型
-bash scripts/download_models.sh
-
-# 3) APP
-cd ../app && flutter pub get && flutter run   # 设置页填服务器地址+token
+cd travel-planner/frontend && npm ci && npm run build
+cd ../backend && PYTHONPATH=. .venv/bin/python -W error -m pytest -q
 ```
 
-打包：见 `scripts/build_android.sh`（debug/apk/aab）与 `scripts/build_ios.sh`（IPA）。
-详细每步：`docs/部署与打包手册.md`。
+已生成 Release 签名的原生高德地图安装包：[`travel-planner/release/xingji-smart-travel-amap-v1.3.0-release.apk`](travel-planner/release/xingji-smart-travel-amap-v1.3.0-release.apk)。它使用竖屏上路线、下高德地图的可滑动布局，高德 Search SDK 实时校准 POI 坐标与景点描述，并支持全国城市扩展、1–30 天、交通方式重算以及路线编号/地图 Marker/方向箭头同步；安装、Release SHA1、高德 Key 绑定和 ICP 分发说明见 [mobile-apk.md](travel-planner/docs/mobile-apk.md)。
 
-## 诚实说明
+## 高德 Key 安全原则
 
-- 本仓库**不含**可直接安装的二进制包——APK/IPA 由你在打包机执行 §5 产出（iOS 需 macOS+签名）
-- 核心生成能力依赖后端 GPU；无 GPU 自动降级并在结果里如实标注 `mode`
-- 各模型许可与商用风险见模型清单；Civitai 第三方 LoRA 需**逐个核许可**
+- **Web 服务 Key** 只放在 FastAPI 运行环境 `AMAP_WEB_SERVICE_KEY`，绝不进入 APK 或前端 Bundle。
+- **Android 平台 Key** 只通过 `AMAP_ANDROID_KEY` 在原生 Android Gradle 构建时注入，绝不提交源码。
+- **JS API Key** 仅可作为受 Referer 限制的前端构建变量使用。
+
+历史美颜模块的源码仍保留在仓库中，但当前 Android 入口与根 README 已切换为行迹智能旅行产品。

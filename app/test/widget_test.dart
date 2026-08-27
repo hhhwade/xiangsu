@@ -1,4 +1,4 @@
-import 'package:ai_beauty_app/theme.dart';
+import 'package:xingji_travel_app/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

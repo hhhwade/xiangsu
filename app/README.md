@@ -1,17 +1,26 @@
-# ai_beauty_app
+# 行迹智能旅行 APK 壳
 
-A new Flutter project.
+此 Flutter 工程是 Android APK 的交付入口。它使用 `webview_flutter` 加载打包进应用资源的 Vue 旅行路线规划界面：
 
-## Getting Started
+```text
+assets/travel_web/
+```
 
-This project is a starting point for a Flutter application.
+- 离线优先：资源由 `travel-planner/frontend/.env.apk` 以 `VITE_DEMO_MODE=true` 构建，首次打开不依赖 `localhost`、后端或浏览器。
+- 原生外壳：处理启动页、返回导航、WebView 错误兜底，以及 Android APK 打包。
+- 真正的高德 Android SDK 集成与 Key 注入方案在 [`../travel-planner/docs/mobile-apk.md`](../travel-planner/docs/mobile-apk.md)。
 
-A few resources to get you started if this is your first Flutter project:
+## 构建
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter pub get
+flutter build apk --debug --target-platform android-arm64
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+APK 输出：
+
+```text
+build/app/outputs/flutter-apk/app-debug.apk
+```
+
+根目录 GitHub Actions 的 **Build Android APK** workflow 会执行同样的构建。

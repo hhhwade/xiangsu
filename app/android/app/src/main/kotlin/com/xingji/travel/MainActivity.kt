@@ -1,4 +1,4 @@
-package com.aibeauty.ai_beauty_app
+package com.xingji.travel
 
 import io.flutter.embedding.android.FlutterActivity
 

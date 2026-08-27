@@ -1,0 +1,49 @@
+services:
+  backend:
+    build:
+      context: ../backend
+    environment:
+      # Leave blank only for deterministic fallback/demo mode.
+      AMAP_WEB_SERVICE_KEY: ${AMAP_WEB_SERVICE_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REQUEST_TIMEOUT_SECONDS: 8
+      PLANNING_CACHE_TTL_SECONDS: 900
+    depends_on:
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    networks: [private]
+
+  web:
+    build:
+      context: ../frontend
+      args:
+        # Leave blank only for the CSS map preview in local demos.
+        VITE_AMAP_JS_KEY: ${VITE_AMAP_JS_KEY:-}
+        VITE_AMAP_SECURITY_JS_CODE: ${VITE_AMAP_SECURITY_JS_CODE:-}
+        # Empty means nginx proxies /api to backend on the same origin.
+        VITE_API_BASE_URL: ""
+        VITE_DEMO_MODE: "false"
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+    networks: [private]
+
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --appendonly yes --save 60 1000
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks: [private]
+
+networks:
+  private:
+    driver: bridge
+
+volumes:
+  redis-data:

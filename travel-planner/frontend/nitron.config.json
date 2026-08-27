@@ -1,0 +1,19 @@
+{
+  "name": "行迹智能旅行",
+  "packageId": "com.xingji.travel",
+  "version": "1.0.0",
+  "entry": "dist/index.html",
+  "orientation": "auto",
+  "statusBar": true,
+  "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
+  "network": {
+    "cleartext": false
+  },
+  "webview": {
+    "backButton": "history",
+    "clearCacheOnStart": false
+  },
+  "splashScreen": {
+    "backgroundColor": "#143031"
+  }
+}

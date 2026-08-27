@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#123f3d" />
+  <title>行迹 · 智能旅行</title>
+  <style>
+    :root { --ink:#173b39; --deep:#123f3d; --deep2:#1b6158; --paper:#f5f7f4; --card:#ffffff; --line:#dfe9e2; --muted:#71837e; --accent:#f17443; --accent-soft:#fff0e8; --mint:#2f8b78; --mint-soft:#e7f5ed; --day:#df7445; --shadow:0 8px 24px rgba(22,64,55,.075); }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { height:100%; margin:0; background:var(--paper); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+    body { overflow:hidden; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    .app { height:100vh; display:flex; flex-direction:column; overflow:hidden; background:radial-gradient(circle at 100% 0%,#e8f5ec 0,transparent 32%),var(--paper); }
+    .topbar { flex:0 0 58px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; color:#fff; background:linear-gradient(120deg,#113432 0%,#18564f 55%,#257061 100%); box-shadow:0 3px 13px rgba(13,48,45,.17); }
+    .brand { display:flex; align-items:center; gap:9px; }
+    .brand-mark { width:31px; height:31px; display:grid; place-items:center; border-radius:11px; color:#ffc28e; background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.05)); box-shadow:inset 0 1px rgba(255,255,255,.22); font-family:serif; font-size:19px; font-weight:700; }
+    .brand-name { display:flex; flex-direction:column; gap:1px; font-family:serif; font-size:19px; font-weight:700; letter-spacing:.1em; line-height:1; }
+    .brand-name small { color:#b9d9ce; font-family:monospace; font-size:7px; font-weight:600; letter-spacing:.13em; }
+    .header-action { height:32px; padding:0 10px; border:1px solid rgba(255,255,255,.27); border-radius:9px; color:#ebf5ee; background:rgba(255,255,255,.11); font-size:10px; font-weight:800; }
+    .header-action span { margin-right:3px; color:#f7bd8c; }
+    .content { flex:1; overflow-y:auto; padding:13px 13px 28px; scrollbar-width:none; }
+    .content::-webkit-scrollbar { display:none; }
+    .trip-hero { position:relative; overflow:hidden; padding:14px; border:1px solid #cfe4d7; border-radius:16px; background:linear-gradient(125deg,#e4f4e9 0%,#f9fcf8 57%,#fff6ee 100%); box-shadow:var(--shadow); }
+    .trip-hero:before { content:""; position:absolute; right:-22px; top:-37px; width:122px; height:122px; border:19px solid rgba(78,153,123,.11); border-radius:50%; }
+    .trip-hero:after { content:""; position:absolute; right:24px; bottom:-41px; width:92px; height:92px; border:13px solid rgba(243,132,78,.1); border-radius:50%; }
+    .hero-row { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; gap:9px; }
+    .hero-kicker { display:flex; align-items:center; gap:5px; color:#5d897b; font-family:monospace; font-size:8px; font-weight:800; letter-spacing:.12em; }
+    .hero-kicker i { width:6px; height:6px; border-radius:50%; background:#5eaf8c; box-shadow:0 0 0 4px rgba(94,175,140,.12); }
+    .hero-city { display:flex; align-items:center; gap:7px; margin-top:5px; color:#204944; font-family:serif; font-size:22px; font-weight:700; letter-spacing:-.03em; }
+    .hero-city i { display:grid; width:27px; height:27px; place-items:center; border-radius:9px; color:#df7040; background:#fff4ed; font-family:sans-serif; font-size:17px; font-style:normal; }
+    .hero-generate { position:relative; z-index:2; flex:0 0 auto; height:36px; padding:0 11px; border:0; border-radius:10px; color:#fff; background:linear-gradient(135deg,#ef7443,#dc6237); box-shadow:0 7px 13px rgba(218,91,43,.22); font-size:10px; font-weight:800; }
+    .summary-stats { position:relative; z-index:1; display:flex; gap:7px; margin-top:13px; }
+    .summary-stat { flex:1; min-width:0; padding:8px 8px 7px; border:1px solid rgba(205,226,213,.85); border-radius:10px; color:#78908a; background:rgba(255,255,255,.77); font-size:9px; }
+    .summary-stat b { display:block; overflow:hidden; margin-top:3px; color:#315f57; font-family:monospace; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+    .editor { margin-top:10px; overflow:hidden; border:1px solid var(--line); border-radius:15px; background:var(--card); box-shadow:var(--shadow); transition:max-height .28s ease,margin .28s ease,border-width .28s ease; }
+    .editor.collapsed { max-height:0; margin-top:0; border-width:0; box-shadow:none; }
+    .editor-inner { padding:14px; }
+    .editor-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; color:#3e6960; font-size:11px; font-weight:800; }
+    .editor-title small { color:#98a7a0; font-size:9px; font-weight:500; }
+    .destination { display:flex; align-items:center; height:42px; border:1px solid #cbd9d0; border-radius:10px; background:#fbfdfb; }
+    .destination span { width:34px; text-align:center; color:var(--accent); font-size:18px; }
+    .destination input { width:100%; min-width:0; height:100%; border:0; outline:0; color:#294e49; background:transparent; font-size:13px; font-weight:700; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:10px; }
+    .field label { display:block; margin-bottom:5px; color:#6e837c; font-size:9px; font-weight:800; }
+    .compact { display:flex; align-items:center; height:35px; overflow:hidden; border:1px solid #d9e3dc; border-radius:9px; background:#f9fbf9; }
+    .compact input { width:100%; min-width:0; height:100%; padding:0 9px; border:0; outline:0; color:#355651; background:transparent; font-size:12px; font-weight:700; }
+    .compact span { padding-right:9px; color:#85938f; font-size:10px; }
+    .label-row { display:flex; justify-content:space-between; margin:13px 0 7px; color:#506e66; font-size:10px; font-weight:800; }
+    .label-row small { color:#9aa8a3; font-size:8px; font-weight:500; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .chip { min-height:29px; padding:0 8px; border:1px solid #dce5de; border-radius:8px; color:#788984; background:#fbfcfa; font-size:9px; }
+    .chip.on { border-color:#66a28f; color:#2c685d; background:#e8f4ec; box-shadow:inset 0 0 0 1px rgba(80,145,121,.05); font-weight:800; }
+    .modes { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+    .mode { min-height:39px; border:1px solid #dce5de; border-radius:9px; color:#778984; background:#fbfcfa; font-size:10px; }
+    .mode.on { border-color:#397d6d; color:#285f56; background:#e6f2ea; box-shadow:0 3px 7px rgba(48,115,94,.08); font-weight:800; }
+    .generate { display:flex; align-items:center; justify-content:center; width:100%; height:43px; gap:6px; margin-top:14px; border:0; border-radius:11px; color:#fff; background:linear-gradient(135deg,#e97040,#d95f35); box-shadow:0 8px 17px rgba(211,86,39,.21); font-size:12px; font-weight:800; }
+    .section-head { display:flex; align-items:flex-end; justify-content:space-between; margin:18px 2px 0; }
+    .eyebrow { margin:0; color:#729187; font-family:monospace; font-size:8px; font-weight:800; letter-spacing:.12em; }
+    .section-head h2 { margin:5px 0 0; color:#244743; font-family:serif; font-size:19px; letter-spacing:-.025em; }
+    .edit-button { height:29px; padding:0 10px; border:1px solid #cae0d3; border-radius:8px; color:#447b6d; background:#eaf5ee; font-size:10px; font-weight:800; }
+    .days { display:flex; gap:6px; margin:12px 0; overflow-x:auto; scrollbar-width:none; }
+    .days::-webkit-scrollbar { display:none; }
+    .day { flex:0 0 auto; height:31px; padding:0 11px; border:1px solid transparent; border-radius:9px; color:#71847e; background:transparent; font-size:10px; font-weight:800; }
+    .day.on { border-color:#bed9cb; color:#2e655b; background:#e5f1e9; box-shadow:0 2px 5px rgba(49,113,94,.06); }
+    .day-dot { display:inline-block; width:7px; height:7px; margin-right:5px; border-radius:50%; vertical-align:middle; }
+    .route-card { position:relative; overflow:hidden; padding:14px; border:1px solid var(--line); border-radius:16px; background:var(--card); box-shadow:var(--shadow); }
+    .route-card:after { content:""; position:absolute; right:-40px; top:-40px; width:98px; height:98px; border:16px solid rgba(69,139,116,.055); border-radius:50%; pointer-events:none; }
+    .route-title { position:relative; z-index:1; display:flex; gap:9px; align-items:center; }
+    .route-bar { width:7px; height:34px; border-radius:7px; background:var(--day); box-shadow:0 3px 7px rgba(219,112,64,.2); }
+    .route-title p { margin:0 0 3px; color:#82928c; font-family:monospace; font-size:8px; letter-spacing:.1em; }
+    .route-title h3 { margin:0; color:#264943; font-family:serif; font-size:18px; letter-spacing:-.025em; }
+    .route-desc { position:relative; z-index:1; margin:11px 0 0; color:#6e817b; font-size:10px; line-height:1.55; }
+    .stats { position:relative; z-index:1; display:flex; gap:8px; margin:11px 0; color:#84948e; font-size:9px; }
+    .stats b { color:#396b60; font-family:monospace; }
+    .stats i { width:3px; height:3px; margin-top:4px; border-radius:50%; background:#bdc8c0; }
+    .optimized { position:relative; z-index:1; display:flex; align-items:center; gap:6px; min-height:31px; padding:0 9px; border:1px solid #d8e8de; border-radius:8px; color:#52756c; background:#edf7f0; font-size:9px; }
+    .optimized b { color:#2d7367; }
+    .optimized em { margin-left:auto; color:#5a9f85; font-style:normal; }
+    .spots { position:relative; z-index:1; margin:13px 0 0; padding:0; list-style:none; }
+    .spot { position:relative; display:grid; grid-template-columns:47px 1fr; min-height:72px; cursor:grab; }
+    .spot:active { cursor:grabbing; }
+    .spot-time { position:relative; padding:9px 9px 0 0; color:#84948e; font-family:monospace; font-size:9px; text-align:right; }
+    .spot-time:after { content:""; position:absolute; right:2px; top:29px; bottom:-4px; width:1px; background:#dbe4dd; }
+    .spot:last-child .spot-time:after { display:none; }
+    .order { position:absolute; z-index:2; right:-6px; top:23px; display:grid; width:19px; height:19px; place-items:center; border:2px solid #fff; border-radius:50%; color:#fff; background:var(--day); box-shadow:0 2px 6px rgba(33,60,52,.2); font-size:9px; font-style:normal; }
+    .spot-box { margin:0 0 9px 7px; padding:9px 10px; border:1px solid transparent; border-radius:10px; background:#fbfcfa; }
+    .spot.selected .spot-box { border-color:#a6cabc; background:#eff9f2; box-shadow:0 3px 10px rgba(42,105,89,.08); }
+    .spot-name { display:flex; justify-content:space-between; gap:6px; color:#2d4d48; font-size:12px; font-weight:800; }
+    .spot-name span:last-child { color:#579080; font-size:14px; }
+    .spot-meta { margin-top:5px; color:#7c8f89; font-size:9px; }
+    .spot-meta b { padding:2px 5px; border-radius:4px; color:#a15b38; background:#ffede3; font-weight:700; }
+    .spot-desc { display:-webkit-box; overflow:hidden; margin:6px 0 0; color:#637a73; font-size:9px; line-height:1.48; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+    .spot-desc b { display:inline-block; margin-right:5px; color:#3d7669; font-size:8px; }
+    .spot-tip { overflow:hidden; margin:4px 0 0; color:#9aa7a2; font-size:8px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+    .segment { display:flex; gap:5px; align-items:center; grid-column:2; padding:0 0 7px 11px; color:#8c9e97; font-size:9px; }
+    .segment span:first-child { color:#cf7043; font-size:12px; }
+    .notice { position:relative; z-index:1; margin-top:11px; padding:10px; border:1px solid #f0e2d4; border-radius:9px; color:#88796e; background:#fff9f3; font-size:9px; line-height:1.6; }
+    .notice b { color:#a16442; }
+    .toast { position:fixed; z-index:9; left:50%; bottom:13px; max-width:calc(100% - 24px); padding:9px 12px; border-radius:8px; color:#37655a; background:#f6fff8; box-shadow:0 10px 24px rgba(20,50,42,.22); font-size:10px; font-weight:700; opacity:0; transform:translate(-50%,10px); transition:.2s; pointer-events:none; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .spot-modal { position:fixed; z-index:30; inset:0; display:none; }
+    .spot-modal.show { display:block; }
+    .modal-scrim { position:absolute; inset:0; background:rgba(10,39,36,.42); backdrop-filter:blur(2px); }
+    .spot-sheet { position:absolute; right:10px; bottom:10px; left:10px; overflow:hidden; max-height:calc(100% - 20px); border-radius:18px; background:#fff; box-shadow:0 18px 42px rgba(15,47,41,.28); }
+    .detail-image { position:relative; height:132px; overflow:hidden; background:#dcece2; }
+    .detail-image:after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 43%,rgba(14,45,40,.43)); pointer-events:none; }
+    .detail-image img { width:100%; height:100%; object-fit:cover; display:block; }
+    .detail-image .no-photo { position:absolute; inset:0; display:none; place-items:center; color:#668177; background:linear-gradient(135deg,#e8f2eb,#f8f6ee); font-size:11px; font-weight:800; }
+    .detail-image .image-caption { position:absolute; z-index:1; bottom:10px; left:13px; color:#fff; font-size:10px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.28); }
+    .detail-close { position:absolute; z-index:2; top:9px; right:9px; display:grid; width:28px; height:28px; place-items:center; border:0; border-radius:50%; color:#2e514b; background:rgba(255,255,255,.9); font-size:18px; }
+    .detail-body { padding:13px 14px 14px; }
+    .detail-type { display:inline-flex; padding:3px 6px; border-radius:5px; color:#a55c37; background:#fff0e8; font-size:9px; font-weight:800; }
+    .detail-title { margin:7px 0 4px; color:#244743; font-family:serif; font-size:20px; letter-spacing:-.02em; }
+    .detail-time { color:#729087; font-size:10px; }
+    .detail-overview-label { margin-top:11px; color:#3d776a; font-size:10px; font-weight:800; }
+    .detail-overview { margin:5px 0 0; color:#5d746e; font-size:11px; line-height:1.58; }
+    .detail-address { margin:9px 0 0; padding:8px; border-radius:8px; color:#81928c; background:#f6f8f5; font-size:9px; line-height:1.45; }
+    .detail-address b { color:#5c756e; }
+    .detail-focus { width:100%; height:36px; margin-top:11px; border:0; border-radius:9px; color:#fff; background:linear-gradient(135deg,#348370,#276b5e); font-size:10px; font-weight:800; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">行</span><span class="brand-name">行迹<small>SMART TRIP PLANNER</small></span></div>
+      <button class="header-action" id="toggleEditor"><span>⚙</span>调整</button>
+    </header>
+    <section class="content">
+      <section class="trip-hero">
+        <div class="hero-row">
+          <div><div class="hero-kicker"><i></i><span id="poiStatus">正在连接高德 POI</span></div><div class="hero-city"><i>⌖</i><span id="overviewCity">杭州</span></div></div>
+          <button class="hero-generate" id="quickGenerate">重新规划</button>
+        </div>
+        <div class="summary-stats">
+          <div class="summary-stat">停留时间<b id="overviewDays">3 天</b></div>
+          <div class="summary-stat">每日游玩<b id="overviewHours">8 小时</b></div>
+          <div class="summary-stat">出行方式<b id="overviewMode">自驾</b></div>
+        </div>
+      </section>
+
+      <section class="editor collapsed" id="editor">
+        <div class="editor-inner">
+          <div class="editor-title"><span>行程偏好</span><small>全国城市 · 智能分天</small></div>
+          <div class="destination"><span>⌖</span><input id="destination" value="杭州" list="cityList" aria-label="目的地"><datalist id="cityList"></datalist></div>
+          <div class="row">
+            <div class="field"><label>停留天数（1–30）</label><div class="compact"><input id="duration" type="number" value="3" min="1" max="30"><span>天</span></div></div>
+            <div class="field"><label>每日游玩</label><div class="compact"><input id="hours" type="number" value="8" min="2" max="16"><span>小时</span></div></div>
+          </div>
+          <div class="label-row"><span>偏好类型</span><small>可多选</small></div>
+          <div class="chips" id="prefs"></div>
+          <div class="label-row"><span>出行方式</span><small>切换后实时重算</small></div>
+          <div class="modes" id="modes"></div>
+          <button class="generate" id="generate">✦ 生成智能路线</button>
+        </div>
+      </section>
+
+      <div class="section-head"><div><p class="eyebrow">CURRENT ITINERARY</p><h2 id="itineraryTitle">杭州 · 3 天路线</h2></div><button class="edit-button" id="inlineEdit">编辑</button></div>
+      <nav class="days" id="days"></nav>
+      <section class="route-card" id="routeCard"></section>
+    </section>
+    <div class="toast" id="toast"></div>
+    <section class="spot-modal" id="spotModal" aria-hidden="true">
+      <div class="modal-scrim" id="detailScrim"></div>
+      <article class="spot-sheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <div class="detail-image"><img id="detailImage" alt="景点图片"><div class="no-photo" id="detailNoImage">暂无该景点实拍图</div><span class="image-caption" id="detailImageCaption">景点图片</span></div>
+        <button class="detail-close" id="detailClose" aria-label="关闭景点详情">×</button>
+        <div class="detail-body">
+          <span class="detail-type" id="detailType"></span>
+          <h3 class="detail-title" id="detailTitle"></h3>
+          <div class="detail-time" id="detailTime"></div>
+          <div class="detail-overview-label">景点概述</div>
+          <p class="detail-overview" id="detailOverview"></p>
+          <p class="detail-address" id="detailAddress"></p>
+          <button class="detail-focus" id="detailFocus">在下方高德地图中定位</button>
+        </div>
+      </article>
+    </section>
+  </main>
+  <script src="national-cities.js"></script>
+  <script src="national-scenics.js"></script>
+  <script src="route-panel.js"></script>
+</body>
+</html>

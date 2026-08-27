@@ -1,5 +1,5 @@
-name: ai_beauty_app
-description: AI 美颜修图（Q 版像素风 + AI 自动美化 P 图）
+name: xingji_travel_app
+description: 行迹智能旅行路线规划 APK（离线优先的路线规划与地图预览）
 publish_to: "none"
 version: 1.0.0+1
 
@@ -9,16 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.1.2
-  http: ^1.2.2
-  image_picker: ^1.1.2
-  shared_preferences: ^2.3.2
-  share_plus: ^10.1.0
-  path_provider: ^2.1.4
-  gal: ^2.3.1
-  intl: ^0.20.1
-  # 低内存构建模式：image_cropper / cached_network_image 已摘除
-  # （恢复商用版时重新加回，见 docs/部署与打包手册.md）
+  webview_flutter: ^4.13.0
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +18,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/travel_web/
+    - assets/travel_web/assets/
