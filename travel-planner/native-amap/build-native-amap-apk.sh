@@ -71,7 +71,7 @@ cat > "$OUT_DIR/apk/res/xml/network_security_config.xml" <<'EOF'
 EOF
 cat > "$OUT_DIR/AndroidManifest.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10203" android:versionName="1.2.3">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.xingji.travel" android:versionCode="10300" android:versionName="1.3.0">
  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

@@ -62,6 +62,8 @@
     }
   }
 
+  var nationalScenics = window.XingjiNationalScenics || {};
+
   var cityCatalogs = {
     '杭州':[
       ['断桥残雪','自然风光',120.1500,30.2600,45],['白堤','自然风光',120.1433,30.2509,60],['平湖秋月','网红打卡',120.1367,30.2482,40],['楼外楼','美食探店',120.1304,30.2382,75],['曲院风荷','自然风光',120.1248,30.2316,75],['苏堤春晓','自然风光',120.1192,30.2216,60],['灵隐寺','宗教寺庙',120.1013,30.2338,90],['飞来峰','历史人文',120.1001,30.2303,75],['龙井村','户外运动',120.0952,30.1882,100],['中国茶叶博物馆','博物馆',120.1060,30.1941,80],['拱宸桥','历史人文',120.1498,30.3133,45],['京杭大运河博物馆','博物馆',120.1509,30.3090,100]
@@ -183,6 +185,16 @@
   function hash(value) { var h=2166136261; for(var i=0;i<value.length;i++){h^=value.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);} return h>>>0; }
   function fallbackCenter(city) { var h=hash(city); return [80+(h%4700)/100,20+((h/97|0)%2700)/100]; }
   function getCenter(city) { return cityCenters[normalizeCity(city)] || fallbackCenter(city); }
+  function scenicSeeds(city) {
+    var key=normalizeCity(city), entries=nationalScenics[city] || nationalScenics[key] || [];
+    if(entries.length) return entries;
+    // Some public datasets use a district or administrative suffix. Match it
+    // only as a fallback so exact city records always win.
+    for(var name in nationalScenics) {
+      if(nationalScenics.hasOwnProperty(name) && normalizeCity(name)===key) return nationalScenics[name];
+    }
+    return [];
+  }
   function poiCacheKey(cityKey) { return 'xingji-amap-poi-v1:' + cityKey; }
   function restoreCachedPois(cityKey) {
     if (nativePoiCache[cityKey]) return nativePoiCache[cityKey];
@@ -247,15 +259,13 @@
     };
     return name + '是' + city + '的' + (type || '特色景点') + '，' + (wording[type] || '适合结合周边街区和高德地图路线进行城市探索。');
   }
-  function genericPool(city, center, count) {
-    var themes=['城市文化地标','本地风味街区','城市博物馆','公园慢游点','人文打卡点','夜景观景点','购物休闲区','城市步行街'];
-    var types=chosenTypes(), result=[], i;
-    for(i=0;i<count;i++) {
-      var ring=Math.floor(i/6)+1, angle=(i*137.5+17)*Math.PI/180, radius=0.010*ring+0.002*(i%3);
-      var lng=center[0]+Math.cos(angle)*radius/Math.max(.45,Math.cos(center[1]*Math.PI/180));
-      var lat=center[1]+Math.sin(angle)*radius;
-      var type=types[i%types.length], name=city+themes[i%themes.length];
-      result.push({id:'generic-'+i,name:name,type:type,lng:lng,lat:lat,duration:50+(i%4)*15,overview:spotOverview(city,type,name),tip:'离线城市扩展路线；联网后会优先替换为高德实时 POI。'});
+  function nationalSeedPool(city, center) {
+    var seeds=scenicSeeds(city), result=[], i;
+    for(i=0;i<seeds.length;i++) {
+      var seed=seeds[i], type='高德候选景点';
+      // These are real attraction names, but deliberately have no fabricated
+      // point coordinate. The native map hides them until AMap resolves a POI.
+      result.push({id:seed.id||('seed-'+i),name:seed.name,type:type,lng:center[0],lat:center[1],duration:70,overview:spotOverview(city,type,seed.name),tip:'正在等待高德 POI 查询校准坐标与详情。',pendingPoi:true});
     }
     return result;
   }
@@ -264,23 +274,24 @@
     if(nativePois && nativePois.length) {
       for(i=0;i<nativePois.length;i++) {
         var poi=nativePois[i];
-        pool.push({id:poi.id||('amap-'+i),name:poi.name,type:poi.type||'高德推荐景点',lng:poi.lng,lat:poi.lat,duration:55+(i%4)*15,overview:poi.overview||spotOverview(city,poi.type||'',poi.name),address:poi.address||'',imageUrl:poi.imageUrl||'',tip:poi.address?('地址：'+poi.address):'高德实时 POI 坐标，建议结合地图查看周边交通。'});
+        pool.push({id:poi.id||('amap-'+i),name:poi.name,type:poi.type||'高德推荐景点',lng:poi.lng,lat:poi.lat,duration:55+(i%4)*15,overview:poi.overview||spotOverview(city,poi.type||'',poi.name),address:poi.address||'',imageUrl:poi.imageUrl||'',tip:poi.address?('地址：'+poi.address):'高德实时 POI 坐标，建议结合地图查看周边交通。',pendingPoi:false});
       }
     } else if(source) {
       for(i=0;i<source.length;i++) {
         var item=source[i];
-        pool.push({id:'seed-'+i,name:item[0],type:item[1],lng:item[2],lat:item[3],duration:item[4],overview:spotOverview(city,item[1],item[0]),imageUrl:landmarkImages[item[0]]||'',tip:'建议结合右侧高德地图安排到达时间。'});
+        pool.push({id:'seed-'+i,name:item[0],type:item[1],lng:item[2],lat:item[3],duration:item[4],overview:spotOverview(city,item[1],item[0]),imageUrl:landmarkImages[item[0]]||'',tip:'内置精选路线；联网后将由高德实时 POI 校准。',pendingPoi:false});
       }
+    } else {
+      pool=nationalSeedPool(city,center);
     }
-    var required=Math.max(days*spotsPerDay,pool.length);
-    if(pool.length<required) {
-      var generic=genericPool(city,center,required-pool.length);
-      for(i=0;i<generic.length;i++) pool.push(generic[i]);
-    }
+    // Do not manufacture fictional city POIs to fill a long itinerary. A city
+    // with insufficient real candidates remains visibly sparse until AMap search
+    // returns more points, which is more honest than showing wrong place names.
     return pool;
   }
   function distanceForMode(a,b,profile) { return haversine(a,b)*profile.road; }
   function orderForMode(items, mode, day) {
+    if(!items || !items.length) return [];
     var result=items.slice();
     if(mode==='walking') {
       var ordered=[result.shift()];
@@ -307,8 +318,15 @@
   function buildRoutes(city, dayCount, dailyHours, mode) {
     var spotsPerDay=dailyHours<=5?3:(dailyHours>=10?5:4), pool=makePool(city,dayCount,spotsPerDay), result=[], themes=['经典人文线','城市慢游线','风味探索线','自然轻行线','艺文打卡线','夜景漫游线'], i;
     for(i=0;i<dayCount;i++) {
-      var group=pool.slice(i*spotsPerDay,(i+1)*spotsPerDay), ordered=orderForMode(group,mode,i+1), schedule=assignSchedule(ordered,mode,dailyHours), profile=modeProfiles[mode];
-      result.push({day:i+1,title:city+themes[i%themes.length],color:colors[i%colors.length],summary:'Day '+(i+1)+' 围绕同一区域安排，按 '+profile.label+' 重新优化游览顺序，减少折返。',distance:schedule.km.toFixed(1)+' km',visit:(ordered.reduce(function(n,s){return n+s.duration;},0)/60).toFixed(1)+' h',transport:(schedule.travel/60).toFixed(1)+' h',notice:'每段已预留 15 分钟缓冲；右侧高德地图显示当前 '+profile.label+' 顺序。',transportMode:mode,spots:ordered});
+      var group=pool.slice(i*spotsPerDay,(i+1)*spotsPerDay), ordered=orderForMode(group,mode,i+1), schedule=assignSchedule(ordered,mode,dailyHours), profile=modeProfiles[mode], pending=ordered.length && ordered[0].pendingPoi;
+      if(pending) { for(var pendingIndex=0;pendingIndex<ordered.length-1;pendingIndex++) ordered[pendingIndex].next='等待高德 POI 坐标校准'; }
+      if(!ordered.length) {
+        result.push({day:i+1,title:city+'待补充路线',color:colors[i%colors.length],summary:'当前城市的真实高德候选景点不足。联网后重新生成路线即可继续补充。',distance:'待高德校准',visit:'—',transport:'—',notice:'没有使用虚构景点补位；请等待高德 POI 查询完成。',transportMode:mode,spots:[]});
+      } else if(pending) {
+        result.push({day:i+1,title:city+themes[i%themes.length],color:colors[i%colors.length],summary:'已读取全国景点候选名称，正在由高德 POI 校准真实坐标后绘制路线。',distance:'待高德校准',visit:(ordered.reduce(function(n,s){return n+s.duration;},0)/60).toFixed(1)+' h',transport:'待高德校准',notice:'当前显示真实景点候选名称；坐标未校准前不在地图上绘制错误点位。',transportMode:mode,spots:ordered});
+      } else {
+        result.push({day:i+1,title:city+themes[i%themes.length],color:colors[i%colors.length],summary:'Day '+(i+1)+' 围绕同一区域安排，按 '+profile.label+' 重新优化游览顺序，减少折返。',distance:schedule.km.toFixed(1)+' km',visit:(ordered.reduce(function(n,s){return n+s.duration;},0)/60).toFixed(1)+' h',transport:(schedule.travel/60).toFixed(1)+' h',notice:'每段已预留 15 分钟缓冲；右侧高德地图显示当前 '+profile.label+' 顺序。',transportMode:mode,spots:ordered});
+      }
     }
     return result;
   }
@@ -316,8 +334,11 @@
     try {
       if(window.XingjiNativeMap && window.XingjiNativeMap.searchPois) {
         setPoiStatus('正在查询高德真实景点');
-        // Multiple terms avoid sparse results from a single category in small cities.
-        window.XingjiNativeMap.searchPois(city, '旅游景点|博物馆|美食');
+        // General categories plus named local scenic seeds make small-city search
+        // much more likely to resolve actual POIs instead of generic candidates.
+        var terms=['旅游景点','博物馆','美食'], seeds=scenicSeeds(city);
+        for(var seedIndex=0;seedIndex<seeds.length && seedIndex<5;seedIndex++) terms.push(seeds[seedIndex].name);
+        window.XingjiNativeMap.searchPois(city, terms.join('|'));
       } else {
         setPoiStatus('离线城市数据');
       }
@@ -346,10 +367,11 @@
   function publish() {
     var r=route(); if(!r)return;
     routeRevision++;
-    var data={revision:routeRevision,transportMode:r.transportMode,routes:[{day:r.day,title:r.title,color:r.color,spots:r.spots.map(function(s){return {name:s.name,arrivalTime:s.arrive,location:{lng:s.lng,lat:s.lat}};})}]};
+    var verifiedSpots=r.spots.filter(function(s){return !s.pendingPoi;});
+    var data={revision:routeRevision,transportMode:r.transportMode,routes:[{day:r.day,title:r.title,color:r.color,spots:verifiedSpots.map(function(s){return {name:s.name,arrivalTime:s.arrive,location:{lng:s.lng,lat:s.lat}};})}]};
     try { if(window.XingjiNativeMap && window.XingjiNativeMap.updateRoute) window.XingjiNativeMap.updateRoute(JSON.stringify(data)); } catch(e) {}
   }
-  function focus(s) { selectedId=s.id;renderRoute();try{if(window.XingjiNativeMap&&window.XingjiNativeMap.focusSpot)window.XingjiNativeMap.focusSpot(s.lat,s.lng);}catch(e){} }
+  function focus(s) { selectedId=s.id;renderRoute();if(s.pendingPoi){notify('该景点正在等待高德 POI 坐标校准');return;}try{if(window.XingjiNativeMap&&window.XingjiNativeMap.focusSpot)window.XingjiNativeMap.focusSpot(s.lat,s.lng);}catch(e){} }
   function renderPrefs() { $('prefs').innerHTML=preferenceNames.map(function(p){return '<button class="chip '+(selectedPrefs.indexOf(p)>=0?'on':'')+'" data-pref="'+p+'">'+p+'</button>';}).join('');var list=document.querySelectorAll('[data-pref]');for(var i=0;i<list.length;i++)list[i].onclick=function(){var p=this.getAttribute('data-pref'),at=selectedPrefs.indexOf(p);if(at>=0)selectedPrefs.splice(at,1);else selectedPrefs.push(p);renderPrefs();}; }
   function renderModes() { $('modes').innerHTML=modeNames.map(function(m){return '<button class="mode '+(modeKey[m]===selectedMode?'on':'')+'" data-mode="'+modeKey[m]+'">'+m+'</button>';}).join('');var list=document.querySelectorAll('[data-mode]');for(var i=0;i<list.length;i++)list[i].onclick=function(){selectedMode=this.getAttribute('data-mode');generatePlan(false);notify('已按 '+modeProfiles[selectedMode].label+' 重新计算路线与交通时间');}; }
   function renderDays() { $('days').innerHTML=routes.map(function(r){return '<button class="day '+(r.day===activeDay?'on':'')+'" data-day="'+r.day+'"><i class="day-dot" style="background:'+r.color+'"></i>Day '+r.day+'</button>';}).join('');var list=document.querySelectorAll('[data-day]');for(var i=0;i<list.length;i++)list[i].onclick=function(){activeDay=Number(this.getAttribute('data-day'));selectedId='';renderAll();}; }

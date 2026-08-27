@@ -180,6 +180,9 @@ public final class MainActivity extends Activity {
             final ArrayList<String> terms = new ArrayList<>();
             for (String raw : rawTerms) {
                 if (raw != null && !raw.trim().isEmpty() && !terms.contains(raw.trim())) terms.add(raw.trim());
+                // Three broad queries + at most five landmark names keep request
+                // volume bounded while substantially improving small-city coverage.
+                if (terms.size() >= 8) break;
             }
             if (terms.isEmpty()) terms.add("旅游景点");
 
